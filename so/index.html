@@ -559,6 +559,8 @@ const BAHAN = {
   temulawak:      { nama:"Temulawak",            unit:"gram", stokAwal:2000 },
   daun_pandan:    { nama:"Daun Pandan",          unit:"gram", stokAwal:50 },
   sereh:          { nama:"Sereh",                unit:"gram", stokAwal:200 },
+  kunyit:         { nama:"Kunyit",               unit:"gram", stokAwal:2000 },
+  asem_jawa:      { nama:"Asem Jawa",            unit:"gram", stokAwal:1000 },
   kopi_bandung:   { nama:"Kopi Aroma Bandung",   unit:"ml",   stokAwal:250 },
   set_dandang:    { nama:"Set Racikan Dandang",  unit:"toples", stokAwal:15 },
   susu:           { nama:"Susu",                 unit:"gram", stokAwal:4000 },
@@ -633,6 +635,14 @@ const MENU = {
     nama:"Kopi Ranjang Hitam",
     bahan:{ cengkeh:0.4, kapulaga:0.4, bunga_lawang:0.6, cabe_jawa:0.6, kayu_manis:0.2, jahe_merah:30, gula_aren_cair:30, kopi_bandung:10, purwaceng:5 }
   },
+  rempah_kunyit_madu: {
+    nama:"Rempah Kunyit Madu",
+    bahan:{ ...REMPAH_DASAR, daun_pandan:0.4, sereh:0.4, kunyit:20, lemon:5 }
+  },
+  rempah_kunyit_asem: {
+    nama:"Rempah Kunyit Asem",
+    bahan:{ ...REMPAH_DASAR, daun_pandan:0.4, sereh:0.4, kunyit:20, lemon:5, asem_jawa:15 }
+  },
   kopi_ranjang_susu: {
     nama:"Kopi Ranjang Susu",
     bahan:{ cengkeh:0.4, kapulaga:0.4, bunga_lawang:0.6, cabe_jawa:0.6, kayu_manis:0.2, jahe_merah:30, gula_aren_cair:30, kopi_bandung:10, purwaceng:5, susu:30 }
@@ -684,6 +694,8 @@ function defaultPcsStok(){
 
 let stok = loadJSON(LS_STOK, defaultStok());
 let pcsStok = loadJSON(LS_PCS_STOK, defaultPcsStok());
+// bahan yang baru ditambahkan belum ada di data tersimpan -> isi stok awalnya
+for(const k in BAHAN){ if(typeof stok[k] !== 'number') stok[k] = BAHAN[k].stokAwal; }
 let txJual = loadJSON(LS_TX_JUAL, []);
 let txPcs = loadJSON(LS_TX_PCS, []);
 let txDandang = loadJSON(LS_TX_DANDANG, []);
@@ -1774,6 +1786,8 @@ const KASIR_MAP = {
   "Ranjang Kopi Hitam":         { t:"drink", k:"kopi_ranjang_hitam" },
   "Bir Pletok Original + Madu": { t:"drink", k:"bir_pletok_original" },
   "Wedang Uwuh":                { t:"drink", k:"wedang_uwuh" },
+  "Rempah Kunyit Madu":         { t:"drink", k:"rempah_kunyit_madu" },
+  "Rempah Kunyit Asem":         { t:"drink", k:"rempah_kunyit_asem" },
   "STMJ":                       { t:"drink", k:"stmj" },
   "Rempah Susu Aren + Madu":    { t:"drink", k:"rempah_susu_aren" },
   "Temulawak Susu":             { t:"drink", k:"rempah_temulawak_susu" },
