@@ -383,3 +383,64 @@ body:has(#view-cart.active) .fab-cart{ display:none !important; }
 .badge-qris{ background:#E4EEFF !important; color:#4A86E8 !important; }
 .badge-unpaid{ background:var(--c-ori-bg) !important; color:var(--c-ori) !important; }
 .stat-box.accent{ background:#16161A; }
+
+
+/* ===== SO: latar putih bersih (tanpa abu-abu) ===== */
+.card{ background:#fff; border:1px solid var(--t-line); box-shadow:none; }
+.stock-bar{ background:#ECEEF2; }
+.stock-item .qty:active{ background:#F1F1F4; }
+select, input[type=number], input[type=text]{ background:#fff; border:1.5px solid var(--t-line); }
+.card select, .card input[type=number], .card input[type=text]{ background:#fff; border:1.5px solid var(--t-line); }
+select:focus, input:focus{ border-color:#16161A; background:#fff; }
+.chip-toggle{ background:#fff; border:1.5px solid var(--t-line); }
+.chip-toggle.on{ background:#16161A; border-color:#16161A; }
+.btn-ghost{ background:#fff; border:1.5px solid var(--t-line); }
+.cal-day{ background:#fff; border:1px solid var(--t-line); }
+.cal-day.today{ background:#16161A; border-color:#16161A; }
+.plan-card.blue{ background:#EAF2FF; }
+.header-search, .brand-mark .glyph{ border:none; }
+.banner.info{ background:#EAF6EE; color:#2E7D4F; }
+.src-badge{ background:#F1F1F4; }
+
+/* ==========================================================
+   TEMA PUTIH PENUH — tidak ada latar abu-abu.
+   Pemisah antar elemen memakai garis tipis, bukan isian abu.
+   ========================================================== */
+:root{
+  --t-bg:#FFFFFF; --t-card:#FFFFFF; --t-pill:#FFFFFF; --t-line:#E6E8EC;
+  --brand-100:#FFFFFF; --brand-50:#FFFFFF; --bg:#FFFFFF; --surface:#FFFFFF;
+  --lav:#FFFFFF; --blue:#FFFFFF; --pink:#FFFFFF;
+}
+/* elemen yang tadinya berisi abu -> putih + garis tipis */
+.queue-chip, .brand-mark, .circ-btn, .store-card, .prep-card, .name-box, .segmented,
+.cat-pill, .stepper button, #app nav.tabs, .badge-tag, .unpaid-card, .hist-card,
+.picker-opt, .pay-btn, .ticket-qnum, .btn-secondary, .header-search, .brand-mark .glyph,
+.ticket-head .tlogo-mark, .install-banner, .switch, .hist-item-row .hi-del, .btn-del,
+.src-badge, .banner.info, #kasirSyncInfo .banner.info{
+  background:#fff !important; border:1px solid var(--t-line) !important;
+}
+.store-card .name-box{ border:none !important; }
+.segmented, .prep-card .segmented{ background:#fff !important; }
+.segmented button.active, nav.tabs button.active, .cat-pill.active, .pay-btn.active{
+  background:#16161A !important; border-color:#16161A !important; color:#fff !important;
+}
+.pay-btn.active .pay-label{ color:#fff; }
+.switch button.active{ background:#16161A; color:#fff; }
+.stepper button{ box-shadow:none; }
+.btn-primary:disabled{ background:#D9D9DF; }
+
+/* kartu menu & rekomendasi: gambar putih dengan garis tipis, ikon tetap berwarna */
+.menu-card .thumb, .rec-thumb{ background:#fff !important; border:1px solid var(--t-line); }
+.menu-card[data-simple^="ori"] .thumb, .menu-card[data-simple^="susu"] .thumb, .menu-card[data-kue] .thumb,
+.rec-card[data-k^="ori"] .rec-thumb, .rec-card[data-k^="susu"] .rec-thumb, .rec-card[data-k^="kue"] .rec-thumb{ background:#fff !important; }
+.cart-line::before{ background-color:#fff !important; border:1px solid var(--t-line); }
+.menu-card .addbadge{ border:1px solid var(--t-line); box-shadow:none; }
+
+/* SO */
+.plan-card.blue, .plan-card.orange{ background:#fff; border:1px solid var(--t-line); }
+.plan-card.orange .tag, .plan-card.blue .tag{ background:#fff; border:1px solid var(--t-line); }
+.cal-day{ background:#fff; }
+.cal-day.today{ background:#16161A; }
+.stock-bar{ background:#ECEEF2; }
+.btn-danger{ background:#fff; border:1.5px solid #F5C9C1; }
+.stat-box.accent{ background:#16161A !important; border-color:#16161A !important; }
