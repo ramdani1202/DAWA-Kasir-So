@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>DAWA Kasir/SO</title>
+<meta name="theme-color" content="#F4F5F7">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DAWA Kasir/SO">
+<link rel="stylesheet" href="theme.css">
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;background:var(--t-bg);overflow:hidden;overscroll-behavior:none;}
+  #shell{display:flex;flex-direction:column;height:100%;height:100dvh;}
+  .switchbar{
+    flex:0 0 auto; background:var(--t-bg);
+    padding:calc(8px + env(safe-area-inset-top)) 14px 8px;
+  }
+  .switch{
+    display:flex; gap:4px; padding:4px; max-width:420px; margin:0 auto;
+    background:var(--t-pill); border-radius:999px;
+  }
+  .switch button{
+    flex:1; border:none; background:transparent; color:var(--t-mute);
+    font:inherit; font-size:13.5px; font-weight:700; padding:9px 10px;
+    border-radius:999px; cursor:pointer; display:flex; align-items:center;
+    justify-content:center; gap:7px; transition:background .15s, color .15s;
+  }
+  .switch button svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .switch button.active{background:#111214;color:#fff;}
+  .frames{flex:1 1 auto;position:relative;min-height:0;padding-bottom:env(safe-area-inset-bottom);background:var(--t-bg);}
+  .frames iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--t-bg);display:none;}
+  .frames iframe.active{display:block;}
+</style>
+</head>
+<body>
+<div id="shell">
+  <div class="switchbar">
+    <div class="switch" role="tablist">
+      <button id="btn-kasir" role="tab" data-app="kasir">
+        <svg viewBox="0 0 24 24"><path d="M7 8h10l-1 11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2L7 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Kasir
+      </button>
+      <button id="btn-so" role="tab" data-app="so">
+        <svg viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>Stok Opname
+      </button>
+    </div>
+  </div>
+  <div class="frames">
+    <iframe id="f-kasir" title="Kasir" data-src="kasir/index.html"></iframe>
+    <iframe id="f-so" title="Stok Opname" data-src="so/index.html"></iframe>
+  </div>
+</div>
+<script>
+(function(){
+  var KEY='dawa_active_app';
+  function show(app){
+    if(app!=='kasir' && app!=='so') app='kasir';
+    ['kasir','so'].forEach(function(a){
+      var f=document.getElementById('f-'+a), b=document.getElementById('btn-'+a);
+      var on=(a===app);
+      if(!f.getAttribute('src')) f.src=f.dataset.src;   // dua app dimuat sekaligus agar sinkron jalan terus
+      f.classList.toggle('active',on);
+      b.classList.toggle('active',on);
+      b.setAttribute('aria-selected',on);
+    });
+    if(app==='so'){ try{ document.getElementById('f-so').contentWindow.postMessage('dawa-sync',location.origin); }catch(e){} }
+    try{ localStorage.setItem(KEY,app); }catch(e){}
+    if(location.hash!=='#'+app) history.replaceState(null,'','#'+app);
+  }
+  document.querySelectorAll('.switch button').forEach(function(b){
+    b.addEventListener('click',function(){ show(b.dataset.app); });
+  });
+  var start=(location.hash||'').replace('#','');
+  if(start!=='kasir' && start!=='so'){ try{ start=localStorage.getItem(KEY); }catch(e){} }
+  show(start);
+
+  // ---------- Service worker & auto update ----------
+  if('serviceWorker' in navigator){
+    var hadController=!!navigator.serviceWorker.controller, reloaded=false;
+    navigator.serviceWorker.addEventListener('controllerchange',function(){
+      if(!hadController){ hadController=true; return; } // instal pertama: jangan reload
+      if(reloaded) return; reloaded=true; location.reload();
+    });
+    navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(function(reg){
+      reg.update();
+      document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') reg.update(); });
+      setInterval(function(){ reg.update(); },10*60*1000);
+    }).catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>

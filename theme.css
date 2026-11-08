@@ -1,0 +1,88 @@
+/* ==========================================================
+   DAWA — tema bersama (gaya minimalis ala "Surf Coffee Concept")
+   Latar abu terang · kartu putih · tombol utama hitam · pil abu
+   Dipakai oleh: index.html (induk), kasir/, so/
+   ========================================================== */
+:root{
+  /* --- token umum --- */
+  --t-bg:#F4F5F7; --t-card:#FFFFFF; --t-pill:#F0F1F4; --t-line:#E9EBEF;
+  --t-ink:#111214; --t-ink2:#3A3D44; --t-mute:#8A8D96; --t-faint:#B9BCC4;
+  --t-red:#E5484D; --t-red-bg:#FCEBEC;
+
+  /* --- Kasir --- */
+  --brand-600:#111214; --brand-700:#111214; --brand-500:#2B2D33;
+  --brand-100:#F0F1F4; --brand-50:#F4F5F7;
+  --ink-900:#111214; --ink-700:#3A3D44; --ink-500:#8A8D96; --ink-300:#B9BCC4;
+  --line:#E9EBEF; --bg:#F4F5F7; --surface:#FFFFFF;
+  --red-600:#E5484D; --red-100:#FCEBEC;
+
+  /* --- SO Bahan Baku --- */
+  --lav:#F0F1F4; --lav-deep:#8A8D96; --purple:#111214; --purple-ink:#111214;
+  --blue:#F0F1F4; --blue-deep:#8A8D96;
+  --pink:#F0F1F4; --pink-deep:#111214;
+  --ink:#111214; --ink-soft:#8A8D96; --paper:#FFFFFF;
+  --danger:#E5484D; --danger-bg:#FCEBEC;
+  --radius:20px; --radius-sm:14px;
+}
+html,body{ font-family:-apple-system,"SF Pro Text","Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif !important; }
+
+/* ================= KASIR ================= */
+#splash{ background:#111214 !important; }
+.brand > .brand-mark{ background:#111214; }
+.ticket-head .tlogo-mark{ background:#111214; }
+.queue-chip{ border:none; background:var(--t-pill); border-radius:999px; }
+header.topbar{ border-bottom:none; }
+.segmented{ background:var(--t-pill); border:none; border-radius:16px; }
+.segmented button{ border-radius:13px; }
+.segmented button.active{ background:#111214; color:#fff; }
+.name-box{ background:var(--t-pill); border:none; border-radius:16px; }
+.cat-pill{ background:var(--t-pill); border:none; border-radius:999px; color:var(--t-ink2); }
+.cat-pill.active{ background:#111214; color:#fff; }
+.menu-card{ border:none; border-radius:18px; box-shadow:0 1px 0 rgba(17,18,20,.04); }
+.menu-card.has-qty{ box-shadow:0 0 0 1.5px #111214; }
+.menu-card .thumb{ background:var(--t-pill); border-bottom:none; color:#111214; }
+.menu-card .addbadge{ border:none; background:var(--t-pill); border-radius:50%; }
+.stepper{ background:var(--t-pill); }
+.stepper button{ background:#fff; color:#111214; box-shadow:0 1px 2px rgba(17,18,20,.12); }
+.bottombar{ border-top:none; box-shadow:0 -10px 28px rgba(17,18,20,.06); border-radius:24px 24px 0 0; }
+.btn-primary{ border-radius:999px; background:#111214; }
+.btn-primary:disabled{ background:#D5D8DE; color:#fff; }
+.fab-cart{ background:#111214; }
+.stat-box{ border-radius:16px; }
+.hist-card,.unpaid-card,.picker-sheet,.ticket{ border-radius:20px; }
+.pay-btn{ border-radius:16px; }
+.pay-btn.active{ border-color:#111214; background:#111214; }
+.pay-btn.active .pay-label{ color:#fff; }
+
+/* ================= SO BAHAN BAKU ================= */
+.brand-mark .glyph{ background:#111214; box-shadow:none; border-radius:16px; }
+.header-search{ background:var(--t-pill); box-shadow:none; }
+.hero-card{ background:#111214; box-shadow:none; border-radius:24px; }
+.hero-card .tag{ background:rgba(255,255,255,.14); }
+.hero-card .hero-btn{ color:#111214; border-radius:999px; }
+.plan-card{ border-radius:20px; }
+.plan-card.orange{ background:#111214; color:#fff; }
+.plan-card.orange .tag{ background:rgba(255,255,255,.16); }
+.plan-card.blue{ background:var(--t-pill); color:#111214; }
+.plan-card.blue .tag{ background:#fff; color:var(--t-mute); }
+.cal-day{ box-shadow:none; border-radius:16px; background:#fff; }
+.cal-day.today .dn{ color:var(--t-faint); }
+.tabs{ box-shadow:0 14px 34px -12px rgba(17,18,20,.45); }
+.tab{ color:var(--t-mute); }
+.btn-primary{ box-shadow:none; }
+.btn-ghost{ border-color:var(--t-line); }
+.install-banner span{ color:var(--t-faint); }
+
+/* tombol hapus & badge sumber (SO) */
+.btn-del{
+  flex:0 0 auto; width:34px; height:34px; border-radius:50%; border:none; cursor:pointer;
+  background:var(--t-pill); color:var(--t-red); display:flex; align-items:center; justify-content:center;
+  margin-left:10px;
+}
+.btn-del:active{ transform:scale(.94); background:var(--t-red-bg); }
+.src-badge{
+  display:inline-block; margin-left:6px; padding:2px 8px; border-radius:999px;
+  background:var(--t-pill); color:var(--t-mute); font-size:10.5px; font-weight:700; vertical-align:middle;
+}
+#kasirSyncInfo .banner{ margin-bottom:8px; }
+#kasirSyncInfo .banner.info{ background:var(--t-pill); color:var(--t-ink2); }
