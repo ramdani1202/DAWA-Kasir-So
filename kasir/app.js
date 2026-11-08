@@ -200,7 +200,7 @@ function renderCart() {
   }
 
   listEl.innerHTML = lines.map(l => `
-    <div class="cart-line">
+    <div class="cart-line" data-k="${l.key}">
       <div class="cl-info">
         <div class="cl-name">${l.name}${l.unitLabel ? ' · ' + l.unitLabel : ''}</div>
         <div class="cl-sub">${rupiah(l.price)} / item</div>
@@ -217,8 +217,14 @@ function renderCart() {
   const total = cartTotal();
   sumEl.innerHTML = `
     <div class="cart-summary">
-      <div class="sum-row"><span>Jumlah item</span><span>${cartCount()} item</span></div>
-      <div class="sum-row total"><span>Total</span><span>${rupiah(total)}</span></div>
+      <div class="cs-col"><b>${cartCount()}</b><span>Item</span></div>
+      <div class="cs-col"><b>${lines.length}</b><span>Menu</span></div>
+      <div class="cs-col"><b>#${pad2(previewNextQueueNumber())}</b><span>Antrian</span></div>
+      <div class="cs-col"><b>${Math.round(total/1000)}rb</b><span>Rupiah</span></div>
+    </div>
+    <div class="cart-total">
+      <div class="ct-total">Total: ${rupiah(total)}</div>
+      <div class="ct-note">${svgIcon('receipt', {size:16})} Antrian #${pad2(previewNextQueueNumber())} siap disimpan</div>
     </div>
   `;
 }

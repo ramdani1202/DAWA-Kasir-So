@@ -440,16 +440,6 @@
 
     <!-- ORDER VIEW -->
     <section class="view active" id="view-order">
-      <div class="name-box">
-        <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-6.5 7-6.5s7 2.9 7 6.5"/></svg></span>
-        <input type="text" id="custName" placeholder="Atas nama pelanggan (opsional)">
-      </div>
-
-      <div class="segmented" id="orderTypeRow">
-        <button class="active" data-type="dinein"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a2.5 2.5 0 0 0 5 0V3"/><path d="M8.5 10v11"/><path d="M17 3c-1.4 0-2.5 1.6-2.5 5.5S15.6 14 17 14v7"/></svg> Dine In</button>
-        <button data-type="takeaway"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14l-1.1 9.3a2 2 0 0 1-2 1.7H8.1a2 2 0 0 1-2-1.7L5 9Z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/><path d="M9.5 5.2 8 3M14.5 5.2 16 3" opacity="0.6"/></svg> Take Away</button>
-      </div>
-
       <div class="cat-scroller" id="catScroller">
         <button class="cat-pill active" data-cat="original">Original</button>
         <button class="cat-pill" data-cat="susu">Varian Susu</button>
@@ -469,9 +459,36 @@
 
     <!-- CART VIEW -->
     <section class="view" id="view-cart">
-      <div class="section-label" style="margin-top:2px;">Isi Keranjang</div>
+      <div class="cart-head">
+        <button class="circ-btn circ-del" id="cartClearBtn" aria-label="Kosongkan keranjang" onclick="Object.keys(state.cart).forEach(function(k){delete state.cart[k];});onCartChanged();"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7"/><path d="M7 7l.7 12a2 2 0 0 0 2 1.9h4.6a2 2 0 0 0 2-1.9L17 7"/></svg></button>
+        <div class="cart-title">Pesanan Anda</div>
+        <button class="circ-btn" id="cartCloseBtn" aria-label="Tutup" onclick="switchView('order')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+
+      <div class="store-card">
+        <div class="store-title">DAWA KASIR</div>
+        <div class="store-sub">Minuman Rempah</div>
+        <div class="name-box">
+        <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-6.5 7-6.5s7 2.9 7 6.5"/></svg></span>
+        <input type="text" id="custName" placeholder="Atas nama pelanggan (opsional)">
+      </div>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+      </div>
+
+      <div class="prep-card">
+        <div class="prep-label">Tipe pesanan</div>
+      <div class="segmented" id="orderTypeRow">
+        <button class="active" data-type="dinein"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a2.5 2.5 0 0 0 5 0V3"/><path d="M8.5 10v11"/><path d="M17 3c-1.4 0-2.5 1.6-2.5 5.5S15.6 14 17 14v7"/></svg> Dine In</button>
+        <button data-type="takeaway"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14l-1.1 9.3a2 2 0 0 1-2 1.7H8.1a2 2 0 0 1-2-1.7L5 9Z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/><path d="M9.5 5.2 8 3M14.5 5.2 16 3" opacity="0.6"/></svg> Take Away</button>
+      </div>
+      </div>
+
+      <div class="section-label">Isi keranjang</div>
       <div id="cartList"></div>
       <div id="cartSummary"></div>
+
+      <div class="section-label rec-label">Rekomendasi untuk Anda</div>
+      <div class="rec-scroller" id="recList"></div>
     </section>
 
     <!-- UNPAID VIEW -->
@@ -605,5 +622,6 @@
 <script src="icons.js"></script>
 <script src="menu-data.js"></script>
 <script src="app.js"></script>
+<script src="rekomendasi.js"></script>
 </body>
 </html>
