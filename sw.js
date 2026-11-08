@@ -5,7 +5,7 @@ const VERSION = 'v5';
 const CACHE_NAME = 'dawa-app-' + VERSION;
 const ASSETS = [
   './', './index.html', './theme.css', './manifest.json',
-  './kasir/index.html', './kasir/app.js', './kasir/menu-data.js', './kasir/icons.js',
+  './kasir/index.html', './kasir/app.js', './kasir/menu-data.js', './kasir/icons.js', './kasir/rekomendasi.js',
   './so/index.html',
   './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-512-maskable.png',
 ];
