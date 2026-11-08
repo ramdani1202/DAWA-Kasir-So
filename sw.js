@@ -1,7 +1,7 @@
 // Naikkan VERSION setiap deploy supaya app yang sedang terbuka
 // otomatis reload ke versi baru. (Tanpa dinaikkan, versi baru tetap
 // terambil saat app dibuka ulang karena strategi network-first.)
-const VERSION = 'v4';
+const VERSION = 'v5';
 const CACHE_NAME = 'dawa-app-' + VERSION;
 const ASSETS = [
   './', './index.html', './theme.css', './manifest.json',

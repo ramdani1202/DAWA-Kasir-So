@@ -1,77 +1,277 @@
 /* ==========================================================
-   DAWA — tema bersama (gaya minimalis ala "Surf Coffee Concept")
-   Latar abu terang · kartu putih · tombol utama hitam · pil abu
-   Dipakai oleh: index.html (induk), kasir/, so/
+   DAWA — tema bersama, mengikuti layar "Your order" (Surf Coffee)
+   Latar putih · kartu abu lembut (#F4F4F6) · teks abu muda untuk label
+   Tombol utama hitam bentuk pil · tombol bulat abu · tanpa garis/bayangan
+   Hanya gaya. Tidak ada logika yang diubah.
    ========================================================== */
 :root{
-  /* --- token umum --- */
-  --t-bg:#F4F5F7; --t-card:#FFFFFF; --t-pill:#F0F1F4; --t-line:#E9EBEF;
-  --t-ink:#111214; --t-ink2:#3A3D44; --t-mute:#8A8D96; --t-faint:#B9BCC4;
+  --t-bg:#FFFFFF; --t-card:#F4F4F6; --t-pill:#F1F1F4; --t-line:#ECECF0;
+  --t-ink:#16161A; --t-ink2:#3B3B42; --t-mute:#8E8E97; --t-faint:#B4B4BC;
   --t-red:#E5484D; --t-red-bg:#FCEBEC;
 
-  /* --- Kasir --- */
-  --brand-600:#111214; --brand-700:#111214; --brand-500:#2B2D33;
-  --brand-100:#F0F1F4; --brand-50:#F4F5F7;
-  --ink-900:#111214; --ink-700:#3A3D44; --ink-500:#8A8D96; --ink-300:#B9BCC4;
-  --line:#E9EBEF; --bg:#F4F5F7; --surface:#FFFFFF;
+  /* Kasir */
+  --brand-600:#16161A; --brand-700:#16161A; --brand-500:#2B2B31;
+  --brand-100:#F1F1F4; --brand-50:#F4F4F6;
+  --ink-900:#16161A; --ink-700:#3B3B42; --ink-500:#8E8E97; --ink-300:#B4B4BC;
+  --line:#ECECF0; --bg:#FFFFFF; --surface:#FFFFFF;
   --red-600:#E5484D; --red-100:#FCEBEC;
+  --amber-600:#8E8E97; --amber-100:#F1F1F4;
+  --blue-600:#16161A; --blue-100:#F1F1F4;
 
-  /* --- SO Bahan Baku --- */
-  --lav:#F0F1F4; --lav-deep:#8A8D96; --purple:#111214; --purple-ink:#111214;
-  --blue:#F0F1F4; --blue-deep:#8A8D96;
-  --pink:#F0F1F4; --pink-deep:#111214;
-  --ink:#111214; --ink-soft:#8A8D96; --paper:#FFFFFF;
+  /* SO */
+  --lav:#F4F4F6; --lav-deep:#8E8E97; --purple:#16161A; --purple-ink:#16161A;
+  --blue:#F4F4F6; --blue-deep:#8E8E97;
+  --pink:#F4F4F6; --pink-deep:#16161A;
+  --orange:#16161A; --orange-deep:#16161A;
+  --ink:#16161A; --ink-soft:#8E8E97; --paper:#FFFFFF; --line:#ECECF0;
+  --ok:#2E9E5B; --ok-bg:#EAF6EE; --warn:#C77A1E; --warn-bg:#FBF1E3;
   --danger:#E5484D; --danger-bg:#FCEBEC;
   --radius:20px; --radius-sm:14px;
 }
-html,body{ font-family:-apple-system,"SF Pro Text","Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif !important; }
+html,body{
+  font-family:-apple-system,"SF Pro Text","Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif !important;
+  background:#fff !important; color:var(--t-ink);
+}
+*{ -webkit-font-smoothing:antialiased; }
 
 /* ================= KASIR ================= */
-#splash{ background:#111214 !important; }
-.brand > .brand-mark{ background:#111214; }
-.ticket-head .tlogo-mark{ background:#111214; }
-.queue-chip{ border:none; background:var(--t-pill); border-radius:999px; }
-header.topbar{ border-bottom:none; }
-.segmented{ background:var(--t-pill); border:none; border-radius:16px; }
-.segmented button{ border-radius:13px; }
-.segmented button.active{ background:#111214; color:#fff; }
-.name-box{ background:var(--t-pill); border:none; border-radius:16px; }
-.cat-pill{ background:var(--t-pill); border:none; border-radius:999px; color:var(--t-ink2); }
-.cat-pill.active{ background:#111214; color:#fff; }
-.menu-card{ border:none; border-radius:18px; box-shadow:0 1px 0 rgba(17,18,20,.04); }
-.menu-card.has-qty{ box-shadow:0 0 0 1.5px #111214; }
-.menu-card .thumb{ background:var(--t-pill); border-bottom:none; color:#111214; }
-.menu-card .addbadge{ border:none; background:var(--t-pill); border-radius:50%; }
-.stepper{ background:var(--t-pill); }
-.stepper button{ background:#fff; color:#111214; box-shadow:0 1px 2px rgba(17,18,20,.12); }
-.bottombar{ border-top:none; box-shadow:0 -10px 28px rgba(17,18,20,.06); border-radius:24px 24px 0 0; }
-.btn-primary{ border-radius:999px; background:#111214; }
-.btn-primary:disabled{ background:#D5D8DE; color:#fff; }
-.fab-cart{ background:#111214; }
-.stat-box{ border-radius:16px; }
-.hist-card,.unpaid-card,.picker-sheet,.ticket{ border-radius:20px; }
-.pay-btn{ border-radius:16px; }
-.pay-btn.active{ border-color:#111214; background:#111214; }
+#splash{ background:#16161A !important; }
+#app{ background:#fff !important; }
+
+/* header: bulat abu kiri-kanan, judul di tengah */
+header.topbar{ background:#fff; border-bottom:none; padding:12px 16px 0; }
+.brandrow{ padding-bottom:14px; position:relative; align-items:center; }
+.brand{ gap:0; }
+.brand-mark{ width:44px; height:44px; border-radius:50% !important; background:var(--t-pill) !important; }
+.brand-mark svg, .ticket-head .tlogo-mark svg{ stroke:#16161A; }
+.brand-mark svg circle{ fill:#16161A; }
+.brand-text{ position:absolute; left:50%; transform:translateX(-50%); text-align:center; pointer-events:none; }
+.brand-text .name{ font-size:16.5px; font-weight:600; letter-spacing:0; color:var(--t-ink); }
+.brand-text .sub{ display:none; }
+.queue-chip{
+  width:44px; height:44px; border-radius:50%; border:none; background:var(--t-pill);
+  padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+}
+.queue-chip .qnum{ font-size:15px; font-weight:700; color:var(--t-ink); }
+.queue-chip .qlabel{ display:none; }
+
+/* tab = pil abu seperti kartu "Prepare now" */
+#app nav.tabs{
+  position:static; margin:0 0 12px; padding:4px; background:var(--t-card); border-radius:18px; gap:2px;
+  box-shadow:none; overflow:visible; left:auto; right:auto; bottom:auto; max-width:none;
+}
+nav.tabs button{
+  border-bottom:none !important; border-radius:14px; padding:10px 4px; font-weight:600;
+  color:var(--t-mute); font-size:12.5px;
+}
+nav.tabs button.active{ background:#16161A; color:#fff !important; }
+.unpaid-dot{ background:var(--t-red); }
+
+main{ padding:6px 16px 120px; }
+.section-label{
+  font-size:15px; font-weight:400; text-transform:none; letter-spacing:0;
+  color:var(--t-mute); margin:20px 2px 12px;
+}
+.install-banner{ background:var(--t-card); color:var(--t-ink); border-radius:18px; }
+.install-banner svg{ stroke:#16161A; }
+.install-banner button{ background:#16161A; color:#fff; border-radius:999px; }
+
+/* kartu info abu (seperti "SURF COFFEE × BASE") */
+.name-box{
+  background:var(--t-card); border:none; border-radius:20px; padding:16px 18px; margin-bottom:10px;
+  position:relative;
+}
+.name-box .ic{ color:var(--t-mute); display:flex; }
+.name-box input{ font-size:15px; font-weight:500; }
+.name-box input::placeholder{ color:var(--t-mute); font-weight:400; }
+.segmented{ background:var(--t-card); border:none; border-radius:20px; padding:5px; margin-bottom:14px; }
+.segmented button{ border-radius:16px; padding:12px 6px; font-weight:600; color:var(--t-mute); font-size:14px; }
+.segmented button.active{ background:#16161A; color:#fff; }
+
+.cat-scroller{ gap:8px; padding:2px 0 6px; margin-bottom:8px; }
+.cat-pill{ background:var(--t-card); border:none; border-radius:999px; color:var(--t-ink2); font-weight:600; padding:10px 17px; }
+.cat-pill.active{ background:#16161A; color:#fff; }
+
+/* menu: kartu seperti "Recommended for you" — gambar abu, teks di bawah, tanpa garis */
+.menu-grid{ gap:14px 12px; }
+.menu-card{ background:transparent; border:none; border-radius:0; box-shadow:none; overflow:visible; }
+.menu-card.has-qty{ box-shadow:none; }
+.menu-card .thumb{
+  height:112px; background:var(--t-card); border:none; border-radius:20px; color:#16161A;
+}
+.menu-card.has-qty .thumb{ box-shadow:inset 0 0 0 1.5px #16161A; }
+.menu-card .info{ padding:10px 2px 0; }
+.menu-card .mname{ font-size:14.5px; font-weight:500; line-height:1.25; min-height:36px; color:var(--t-ink); }
+.menu-card .mprice{ margin-top:4px; font-size:14px; font-weight:500; color:var(--t-mute); }
+.menu-card .addbadge{
+  top:8px; right:8px; width:30px; height:30px; border-radius:50%; border:none;
+  background:#fff; color:#16161A; box-shadow:0 1px 3px rgba(22,22,26,.12);
+}
+.menu-card.has-qty .addbadge{ background:#16161A; color:#fff; }
+.menu-card .qtytag{ top:8px; left:8px; background:#16161A; font-size:11px; padding:3px 9px; }
+
+/* bottom sheet */
+.picker-overlay{ background:rgba(22,22,26,.4); }
+.picker-sheet{ border-radius:28px 28px 0 0; padding:24px 18px 28px; }
+.picker-sheet h3{ font-weight:600; font-size:17px; }
+.picker-sheet .desc{ color:var(--t-mute); }
+.picker-opt{ background:var(--t-card); border:none; border-radius:18px; padding:15px 18px; }
+.picker-opt .left b{ font-weight:600; }
+.picker-opt .left span{ color:var(--t-mute); }
+.picker-opt .price{ color:var(--t-ink); font-weight:600; }
+.picker-cancel{ color:var(--t-mute); font-weight:600; }
+
+/* keranjang: baris dengan thumbnail, nama, abu kecil, harga, stepper bulat */
+.cart-line{
+  background:transparent; border:none; border-radius:0; padding:10px 0; margin:0 0 6px; gap:14px;
+  align-items:center; position:relative;
+}
+.cart-line::before{
+  content:""; flex:0 0 68px; width:68px; height:68px; border-radius:16px; background-color:var(--t-card);
+  background-repeat:no-repeat; background-position:center; background-size:30px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2316161A' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M7 8h10l-1 11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2L7 8Z'/><path d='M9 8V6a3 3 0 0 1 6 0v2'/><path d='M9.5 13h5'/></svg>");
+}
+.cart-line .cl-info{ display:flex; flex-direction:column; }
+.cart-line .cl-name{ font-size:15px; font-weight:500; color:var(--t-ink); line-height:1.25; }
+.cart-line .cl-sub{ order:2; font-size:13px; color:var(--t-mute); margin-top:3px; }
+.cart-line .cl-price{ order:3; font-size:15px; font-weight:500; color:var(--t-ink); margin-top:6px; }
+.stepper{ background:transparent; padding:0; gap:10px; }
+.stepper button{
+  width:34px; height:34px; border-radius:50%; background:var(--t-pill); color:#16161A;
+  font-size:19px; font-weight:400; box-shadow:none;
+}
+.stepper .qv{ font-size:15px; font-weight:500; min-width:14px; }
+
+/* ringkasan: kotak outline 4 kolom ala nutrisi + total tengah */
+.cart-summary{
+  background:#fff; border:1px solid var(--t-line); border-radius:20px; padding:16px 18px; margin-top:16px;
+}
+.sum-row{ font-size:14px; color:var(--t-mute); padding:2px 0; }
+.sum-row.total{
+  border-top:none; margin-top:10px; padding-top:0; justify-content:center; gap:6px;
+  font-size:18px; font-weight:700; color:var(--t-ink);
+}
+.sum-row.total span:first-child::after{ content:":"; }
+.empty-state{ color:var(--t-faint); }
+.empty-state .msg{ color:var(--t-mute); font-weight:500; }
+
+/* bar bawah putih + tombol hitam pil penuh */
+.bottombar{
+  background:#fff; border-top:none; box-shadow:none; border-radius:0;
+  padding:10px 16px calc(14px + env(safe-area-inset-bottom));
+}
+.btn-primary{
+  border-radius:999px; background:#16161A; color:#fff; padding:17px; font-size:16px; font-weight:600; letter-spacing:0;
+}
+.btn-primary:disabled{ background:#D9D9DF; color:#fff; }
+.btn-secondary{ border:none; background:var(--t-pill); color:var(--t-ink); border-radius:999px; font-weight:600; padding:15px; }
+.fab-cart{ background:#16161A; box-shadow:0 8px 20px rgba(22,22,26,.25); }
+.fab-cart .fc-badge{ background:var(--t-red); border-color:#fff; }
+.toast{ background:#16161A; font-weight:600; }
+
+/* badge */
+.badge-tag{ background:var(--t-pill) !important; color:var(--t-ink2) !important; font-weight:600; }
+.badge-unpaid{ color:var(--t-mute) !important; }
+
+/* belum bayar & riwayat */
+.unpaid-card, .hist-card{ background:var(--t-card); border:none; border-left:none; border-radius:20px; padding:16px; }
+.unpaid-qnum, .hist-qnum{ background:#16161A; border-radius:999px; padding:3px 10px; }
+.unpaid-name, .hist-name{ font-weight:600; }
+.unpaid-time, .hist-time{ color:var(--t-mute); }
+.unpaid-items{ color:var(--t-mute); }
+.unpaid-total, .hist-total{ font-weight:700; }
+.unpaid-actions button{ border-radius:999px; padding:12px; font-weight:600; }
+.btn-lunas{ background:#16161A; color:#fff; }
+.btn-batal{ background:#fff; color:var(--t-mute); border:none !important; }
+.hist-item-row{ border-bottom:1px solid var(--t-line); }
+.hist-item-row .hi-del{ width:24px; height:24px; border-radius:50%; background:#fff; }
+.btn-del-trx{ color:var(--t-red); }
+.stat-box{ background:#fff; border:1px solid var(--t-line); border-radius:20px; padding:16px 14px; }
+.stat-box .sv{ font-weight:700; }
+.stat-box .sl{ color:var(--t-mute); font-weight:500; text-transform:none; letter-spacing:0; font-size:12px; }
+.stat-box.accent{ background:#16161A; border-color:#16161A; }
+.stat-box.accent .sl{ color:rgba(255,255,255,.6); }
+.hist-actions button{ border-radius:999px; padding:14px; font-weight:600; }
+.btn-pdf{ background:#16161A; color:#fff; }
+.btn-reset{ background:#fff; color:var(--t-red); border:1.5px solid var(--t-red-bg); }
+
+.pay-btn{ background:var(--t-card); border:none; border-radius:18px; padding:15px 8px; }
+.pay-btn .pay-label{ font-weight:600; color:var(--t-mute); }
+.pay-btn.active{ background:#16161A; border:none; }
 .pay-btn.active .pay-label{ color:#fff; }
 
+/* struk */
+.ticket-overlay{ background:rgba(22,22,26,.45); }
+.ticket{ border-radius:28px; padding:26px 22px; }
+.ticket-head .tlogo-mark{ background:var(--t-pill) !important; border-radius:50%; }
+.ticket-head .tlogo{ font-weight:600; }
+.ticket-head .tsub{ color:var(--t-mute); }
+.ticket-qnum{ background:var(--t-card); border:none; border-radius:20px; }
+.ticket-qnum .tqlabel{ color:var(--t-mute); }
+.ticket-qnum .tqval{ color:var(--t-ink); }
+.ticket hr{ border-top:1px solid var(--t-line); }
+.ticket-actions button{ border-radius:999px; padding:14px; font-weight:600; }
+.ticket-total{ font-weight:700; }
+
 /* ================= SO BAHAN BAKU ================= */
-.brand-mark .glyph{ background:#111214; box-shadow:none; border-radius:16px; }
-.header-search{ background:var(--t-pill); box-shadow:none; }
-.hero-card{ background:#111214; box-shadow:none; border-radius:24px; }
-.hero-card .tag{ background:rgba(255,255,255,.14); }
-.hero-card .hero-btn{ color:#111214; border-radius:999px; }
+body{ background:#fff !important; }
+header.top{ padding:14px 16px 4px; }
+.brand-mark .glyph{ background:var(--t-pill); color:#16161A; box-shadow:none; border-radius:50%; width:44px; height:44px; }
+.brand-mark .txt b{ font-weight:600; font-size:17px; letter-spacing:0; }
+.brand-mark .txt span{ color:var(--t-mute); }
+.header-search{ background:var(--t-pill); box-shadow:none; width:44px; height:44px; }
+.date-row{ color:var(--t-mute); }
+
+.hero-card{ background:#16161A; box-shadow:none; border-radius:24px; }
+.hero-card .tag{ background:rgba(255,255,255,.14); backdrop-filter:none; font-weight:600; }
+.hero-card .hero-btn{ background:#fff; color:#16161A; border-radius:999px; font-weight:700; }
 .plan-card{ border-radius:20px; }
-.plan-card.orange{ background:#111214; color:#fff; }
+.plan-card.orange{ background:#16161A; color:#fff; }
 .plan-card.orange .tag{ background:rgba(255,255,255,.16); }
-.plan-card.blue{ background:var(--t-pill); color:#111214; }
+.plan-card.blue{ background:var(--t-card); color:#16161A; }
 .plan-card.blue .tag{ background:#fff; color:var(--t-mute); }
-.cal-day{ box-shadow:none; border-radius:16px; background:#fff; }
+.cal-day{ background:var(--t-card); box-shadow:none; border-radius:16px; }
+.cal-day.today{ background:#16161A; color:#fff; }
 .cal-day.today .dn{ color:var(--t-faint); }
-.tabs{ box-shadow:0 14px 34px -12px rgba(17,18,20,.45); }
-.tab{ color:var(--t-mute); }
-.btn-primary{ box-shadow:none; }
-.btn-ghost{ border-color:var(--t-line); }
+.cal-day .dot{ background:#16161A; }
+.section-title{ font-weight:600; font-size:17px; }
+
+.card{ background:var(--t-card); border:none; box-shadow:none; border-radius:20px; }
+.card h2{ font-weight:600; }
+.card .sub{ color:var(--t-mute); }
+.stock-item{ border-bottom:1px solid var(--t-line); }
+.stock-item .name{ font-weight:500; }
+.stock-item .qty:active{ background:#fff; }
+.stock-bar{ background:#fff; }
+.edit-row input{ border:1.5px solid #16161A; }
+.group-label{ color:var(--t-mute); font-weight:600; text-transform:none; letter-spacing:0; font-size:14px; }
+select, input[type=number], input[type=text]{ background:#fff; border:none; border-radius:16px; }
+.card select, .card input[type=number], .card input[type=text]{ background:#fff; }
+select:focus, input:focus{ border-color:#16161A; }
+label.field .lbl{ color:var(--t-mute); font-weight:500; }
+.chip-toggle{ background:#fff; border:none; border-radius:999px; font-weight:600; }
+.chip-toggle.on{ background:#16161A; color:#fff; }
+
+.btn{ border-radius:999px; font-weight:600; padding:16px; }
+.btn-primary{ background:#16161A; box-shadow:none; }
+.btn-dark{ background:#16161A; }
+.btn-ghost{ background:#fff; border:none; color:#16161A; }
+.btn-danger{ border:none; }
+.receipt-line{ border-bottom:1px solid var(--t-line); }
+.receipt-line.total{ border-top:1px solid var(--t-ink); }
+.banner{ border-radius:18px; font-weight:500; }
+.banner.info{ background:var(--t-pill); color:var(--t-ink2); }
+
+/* nav bawah SO: pil hitam melayang */
+.tabs{ background:#16161A; border-radius:999px; box-shadow:0 14px 34px -12px rgba(22,22,26,.45); }
+.tab{ color:var(--t-mute); font-weight:600; border-radius:999px; }
+.tab.active{ background:#fff; color:#16161A; }
+.tab.active svg.icon{ stroke:#16161A; }
+.toast.show{ background:#16161A; }
+.install-banner{ background:#16161A; }
 .install-banner span{ color:var(--t-faint); }
+.history-item{ border-bottom:1px solid var(--t-line); }
+::selection{ background:#16161A; color:#fff; }
 
 /* tombol hapus & badge sumber (SO) */
 .btn-del{
@@ -82,7 +282,10 @@ header.topbar{ border-bottom:none; }
 .btn-del:active{ transform:scale(.94); background:var(--t-red-bg); }
 .src-badge{
   display:inline-block; margin-left:6px; padding:2px 8px; border-radius:999px;
-  background:var(--t-pill); color:var(--t-mute); font-size:10.5px; font-weight:700; vertical-align:middle;
+  background:#fff; color:var(--t-mute); font-size:10.5px; font-weight:600; vertical-align:middle;
 }
 #kasirSyncInfo .banner{ margin-bottom:8px; }
 #kasirSyncInfo .banner.info{ background:var(--t-pill); color:var(--t-ink2); }
+
+/* input di dalam kartu abu Kasir tetap transparan (tidak kena gaya input SO) */
+.name-box input, .name-box input:focus{ background:transparent !important; border:none !important; padding:0 !important; border-radius:0 !important; width:auto; }
