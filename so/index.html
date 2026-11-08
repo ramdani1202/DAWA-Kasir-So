@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SO Rempah — Stok Opname Harian</title>
+<meta name="theme-color" content="#6d5bf0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%236d5bf0%22/><text x=%2250%22 y=%2268%22 font-size=%2258%22 text-anchor=%22middle%22 fill=%22%23ffffff%22 font-family=%22serif%22>幸</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    /* Palet baru ala referensi: lavender, oranye hangat, biru muda */
+    --lav:#efe9ff;
+    --lav-deep:#8b7cf6;
+    --purple:#6d5bf0;
+    --purple-ink:#2c2350;
+    --orange:#ffb648;
+    --orange-deep:#ff9d2e;
+    --blue:#bfe0ff;
+    --blue-deep:#5aa8ec;
+    --pink:#ffd3ee;
+    --pink-deep:#f38fd0;
+    --ink:#1f1b2e;
+    --ink-soft:#6f6a85;
+    --line:#ece8f7;
+    --paper:#ffffff;
+    --bg:#f4f1fb;
+    --ok:#3fae66;
+    --ok-bg:#e6f7ec;
+    --warn:#e08a2b;
+    --warn-bg:#fdf1e0;
+    --danger:#e0503f;
+    --danger-bg:#fdeae7;
+    --radius:22px;
+    --radius-sm:14px;
+    font-size:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"SF Pro Display","Segoe UI",system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+    padding-bottom:110px;
+  }
+  .utility{ font-family:"SF Mono","Menlo",monospace; letter-spacing:0.02em; }
+
+  header.top{
+    padding:20px 18px 6px;
+    max-width:720px;
+    margin:0 auto;
+  }
+  .brand-mark{
+    display:flex; align-items:center; gap:12px; margin-bottom:2px;
+  }
+  .brand-mark .glyph{
+    width:46px;height:46px;border-radius:16px;
+    background:linear-gradient(155deg,var(--orange),var(--pink-deep));
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px; color:#fff; font-weight:800;
+    box-shadow:0 6px 16px -4px rgba(243,143,208,.55);
+    flex-shrink:0;
+  }
+  .brand-mark .txt{ line-height:1.2; flex:1; }
+  .brand-mark .txt b{ display:block; font-size:19px; color:var(--ink); font-weight:800; letter-spacing:-.01em;}
+  .brand-mark .txt span{ font-size:12.5px; color:var(--ink-soft); font-weight:500; }
+  .header-search{
+    width:40px; height:40px; border-radius:50%; background:#fff;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    box-shadow:0 2px 10px -2px rgba(44,35,80,.15); cursor:pointer;
+  }
+
+  .date-row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:12px; color:var(--ink-soft); opacity:.9;
+    padding:10px 2px 0;
+  }
+
+  main{ max-width:720px; margin:0 auto; padding:0 14px; position:relative; }
+
+  /* Bottom nav ala referensi: pill hitam mengambang */
+  .tabs{
+    display:flex; gap:2px; background:var(--ink);
+    border-radius:26px; padding:10px 6px;
+    box-shadow:0 14px 34px -10px rgba(31,27,46,.55);
+    position:fixed; left:14px; right:14px; bottom:14px; max-width:692px; margin:0 auto;
+    z-index:30; overflow-x:auto; scrollbar-width:none;
+  }
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{
+    flex:1; min-width:66px; text-align:center; padding:9px 4px 8px;
+    border-radius:18px; font-size:10.5px; font-weight:700; color:#8e89ab;
+    cursor:pointer; user-select:none; white-space:nowrap; transition:.15s;
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+  }
+  .tab svg.icon{ width:22px; height:22px; stroke-width:2.1; }
+  .tab.active{ background:#fff; color:var(--ink); box-shadow:0 4px 10px -2px rgba(0,0,0,.3);}
+  .tab.active svg.icon{ stroke:var(--purple); }
+
+  .panel{ display:none; animation:fade .25s ease; }
+  .panel.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  /* Hero / status card ala "Daily challenge" ungu */
+  .hero-card{
+    background:linear-gradient(135deg,var(--purple),#a68bfa);
+    border-radius:28px; padding:22px 20px; margin:14px 0 18px;
+    color:#fff; position:relative; overflow:hidden;
+    box-shadow:0 16px 34px -14px rgba(109,91,240,.6);
+  }
+  .hero-card .tag{
+    display:inline-block; background:rgba(255,255,255,.22); backdrop-filter:blur(2px);
+    padding:4px 11px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:10px;
+  }
+  .hero-card h1{ margin:0 0 6px; font-size:23px; font-weight:800; line-height:1.15; max-width:75%; }
+  .hero-card p{ margin:0; font-size:12.5px; opacity:.88; max-width:75%; line-height:1.5; }
+  .hero-card .hero-btn{
+    margin-top:14px; display:inline-block; background:#fff; color:var(--purple);
+    padding:9px 18px; border-radius:20px; font-size:12.5px; font-weight:800; border:none; cursor:pointer;
+  }
+  .hero-card .hero-emoji{
+    position:absolute; right:14px; top:14px; font-size:52px; opacity:.9; transform:rotate(8deg);
+  }
+
+  /* Calendar strip */
+  .cal-strip{
+    display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; margin-bottom:18px;
+  }
+  .cal-strip::-webkit-scrollbar{display:none;}
+  .cal-day{
+    flex:1; min-width:42px; background:#fff; border-radius:16px; padding:10px 4px;
+    text-align:center; box-shadow:0 2px 8px -4px rgba(44,35,80,.12); cursor:pointer;
+  }
+  .cal-day .dn{ font-size:10px; color:var(--ink-soft); font-weight:700; text-transform:uppercase; }
+  .cal-day .dd{ font-size:14px; font-weight:800; margin-top:3px; }
+  .cal-day.today{ background:var(--ink); color:#fff; }
+  .cal-day.today .dn{ color:#c7c2e0; }
+  .cal-day .dot{ width:4px;height:4px;border-radius:50%; background:var(--purple); margin:4px auto 0; }
+
+  .section-title{
+    font-size:18px; font-weight:800; margin:6px 0 12px; letter-spacing:-.01em;
+  }
+
+  /* Card umum */
+  .card{
+    background:var(--paper); border-radius:var(--radius);
+    padding:18px; margin-bottom:14px;
+    box-shadow:0 2px 12px -6px rgba(44,35,80,.12);
+    border:1px solid var(--line);
+  }
+  .card h2{
+    margin:0 0 4px; font-size:15.5px; color:var(--ink); font-weight:800;
+    display:flex; align-items:center; gap:8px;
+  }
+  .card .sub{ font-size:12.5px; color:var(--ink-soft); margin:0 0 14px; line-height:1.55;}
+
+  /* Dua kartu warna ala "Your plan" */
+  .plan-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+  .plan-card{
+    border-radius:22px; padding:16px 14px; min-height:150px;
+    display:flex; flex-direction:column; position:relative; overflow:hidden;
+  }
+  .plan-card.orange{ background:linear-gradient(160deg,var(--orange),var(--orange-deep)); color:#fff; }
+  .plan-card.blue{ background:linear-gradient(160deg,#d6ecff,var(--blue)); color:var(--ink); }
+  .plan-card .tag{
+    align-self:flex-start; font-size:10.5px; font-weight:800; padding:4px 10px; border-radius:20px;
+    background:rgba(255,255,255,.35); margin-bottom:10px;
+  }
+  .plan-card.blue .tag{ background:rgba(90,168,236,.18); color:var(--blue-deep); }
+  .plan-card .ttl{ font-size:16px; font-weight:800; margin-bottom:4px; }
+  .plan-card .mt{ font-size:11.5px; opacity:.85; line-height:1.5; }
+
+  .stock-item{
+    display:grid; grid-template-columns: 1fr auto; align-items:center;
+    padding:12px 0; border-bottom:1px solid var(--line); gap:6px;
+  }
+  .stock-item:last-child{ border-bottom:none; }
+  .stock-item .name{ font-size:14.5px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:6px;}
+  .stock-item .meta{ font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+  .stock-item .qty{
+    font-family:"SF Mono","Menlo",monospace; font-size:14.5px; font-weight:800; text-align:right;
+    min-width:92px; cursor:pointer; padding:5px 8px; border-radius:10px; transition:.15s;
+  }
+  .stock-item .qty:active{ background:var(--bg); }
+  .edit-pencil{ font-size:12px; opacity:.45; flex-shrink:0; }
+  .stock-item .qty.low{ color:var(--warn); background:var(--warn-bg); }
+  .stock-item .qty.crit{ color:var(--danger); background:var(--danger-bg); }
+  .stock-item .qty.ok{ color:var(--ok); background:var(--ok-bg); }
+  .edit-row{
+    grid-column: 1 / -1; display:flex; gap:8px; align-items:center;
+    padding:10px 0 4px; animation:fade .15s ease;
+  }
+  .edit-row input{
+    flex:1; padding:9px 10px; font-size:14px; border-radius:12px;
+    border:1.5px solid var(--purple);
+  }
+  .edit-row .btn-sm{ flex-shrink:0; }
+  .stock-bar{
+    height:6px; border-radius:4px; background:var(--line); margin-top:7px; overflow:hidden;
+  }
+  .stock-bar i{ display:block; height:100%; border-radius:4px; background:var(--ok); }
+  .stock-bar i.warn{ background:var(--warn); }
+  .stock-bar i.crit{ background:var(--danger); }
+
+  .group-label{
+    font-size:11px; text-transform:uppercase; letter-spacing:.09em; color:var(--purple);
+    font-weight:800; margin:18px 0 6px;
+  }
+  .group-label:first-child{ margin-top:0; }
+
+  select, input[type=number], input[type=text]{
+    width:100%; padding:12px 13px; border-radius:14px;
+    border:1.5px solid var(--line); background:var(--bg); font-size:15px;
+    font-family:inherit; color:var(--ink); appearance:none;
+  }
+  select:focus, input:focus{ outline:none; border-color:var(--purple); background:#fff; }
+  label.field{ display:block; margin-bottom:12px; }
+  label.field .lbl{ display:block; font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:6px; }
+
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  .chip-toggle{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:9px 13px; border-radius:20px; border:1.5px solid var(--line);
+    background:#fff; font-size:13px; font-weight:700; color:var(--ink-soft);
+    cursor:pointer; user-select:none; margin:0 6px 8px 0;
+  }
+  .chip-toggle.on{ background:var(--purple); border-color:var(--purple); color:#fff; }
+
+  .btn{
+    display:block; width:100%; text-align:center; padding:14px 16px;
+    border-radius:16px; border:none; font-size:15px; font-weight:800;
+    cursor:pointer; font-family:inherit;
+  }
+  .btn-primary{ background:linear-gradient(135deg,var(--purple),#8a7af7); color:#fff; box-shadow:0 8px 18px -6px rgba(109,91,240,.55);}
+  .btn-primary:active{ transform:translateY(1px); }
+  .btn-dark{ background:var(--ink); color:#fff; }
+  .btn-ghost{ background:transparent; color:var(--ink); border:1.5px solid var(--line); }
+  .btn-danger{ background:var(--danger-bg); color:var(--danger); border:1.5px solid #f5c9c1; }
+  .btn-sm{ padding:9px 12px; font-size:13px; width:auto; border-radius:12px; }
+
+  .receipt-line{
+    display:flex; justify-content:space-between; padding:8px 0;
+    border-bottom:1px dashed var(--line); font-size:13.5px;
+  }
+  .receipt-line span:last-child{ font-family:"SF Mono","Menlo",monospace; font-weight:700; }
+  .receipt-line.neg span:last-child{ color:var(--danger); }
+  .receipt-line.total{ border-bottom:none; border-top:2px solid var(--ink); margin-top:6px; padding-top:10px; font-weight:800;}
+
+  .banner{
+    padding:13px 15px; border-radius:16px; font-size:13px; margin-bottom:14px;
+    display:flex; align-items:flex-start; gap:10px; line-height:1.5; font-weight:600;
+  }
+  .banner.info{ background:var(--ok-bg); color:#2c7a49; }
+  .banner.warn{ background:var(--warn-bg); color:#9c5f16; }
+  .banner.danger{ background:var(--danger-bg); color:var(--danger); }
+
+  .empty{
+    text-align:center; padding:36px 20px; color:var(--ink-soft); font-size:13.5px;
+  }
+
+  .toast{
+    position:fixed; bottom:108px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; padding:12px 20px;
+    border-radius:30px; font-size:13.5px; font-weight:700; z-index:100;
+    box-shadow:0 10px 30px -8px rgba(0,0,0,.5);
+    opacity:0; pointer-events:none; transition:.25s;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+
+  .install-banner{
+    display:none; position:fixed; left:14px; right:14px; bottom:100px;
+    max-width:692px; margin:0 auto; background:var(--ink); color:#fff;
+    border-radius:18px; padding:13px 14px; box-shadow:0 12px 30px -8px rgba(0,0,0,.5);
+    z-index:90; align-items:center; gap:12px;
+  }
+  .install-banner b{ font-size:13.5px; display:block; }
+  .install-banner span{ font-size:11.5px; color:#c7c2e0; }
+  .install-banner button{ margin-left:auto; flex-shrink:0; }
+
+  .history-item{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:13px 0; border-bottom:1px solid var(--line);
+  }
+  .history-item:last-child{ border-bottom:none; }
+  .history-item .d{ font-size:13.5px; font-weight:800; }
+  .history-item .s{ font-size:11.5px; color:var(--ink-soft); }
+
+  .menu-search{ margin-bottom:10px; }
+
+  ::selection{ background:var(--purple); color:#fff; }  .icon{ width:1em; height:1em; display:inline-block; vertical-align:-0.15em; stroke:currentColor; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .icon-lg{ width:22px; height:22px; }
+</style>
+<link rel="stylesheet" href="../theme.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand-mark">
+    <div class="glyph">幸</div>
+    <div class="txt">
+      <b>Hello, Crew Outlet</b>
+      <span id="todayLabel">—</span>
+    </div>
+    <div class="header-search" onclick="document.getElementById('panel-riwayat').scrollIntoView && document.querySelector('[data-tab=riwayat]').click()">
+      <svg class="icon icon-lg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HERO STATUS CARD -->
+  <div class="hero-card" id="heroCard">
+    <span class="hero-emoji">
+      <svg class="icon" viewBox="0 0 24 24" style="width:48px;height:48px;stroke-width:1.5;"><path d="M12 2c1.5 3 3 4.5 3 7a3 3 0 1 1-6 0c0-2.5 1.5-4 3-7Z"/><path d="M8 14c-2 1-4 3-4 6a2 2 0 0 0 2 2c3 0 5-2 6-4"/><path d="M16 14c2 1 4 3 4 6a2 2 0 0 1-2 2c-3 0-5-2-6-4"/></svg>
+    </span>
+    <span class="tag" id="heroTag">Hari ini</span>
+    <h1 id="heroTitle">Stok Opname</h1>
+    <p id="heroSub">Cek & catat pemakaian bahan baku hari ini.</p>
+    <button class="hero-btn" onclick="document.querySelector('[data-tab=jual]').click()">Input Sekarang</button>
+  </div>
+
+  <!-- CALENDAR STRIP -->
+  <div class="cal-strip" id="calStrip"></div>
+
+  <nav class="tabs">
+    <div class="tab active" data-tab="stok">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
+      <div>Stok</div>
+    </div>
+    <div class="tab" data-tab="jual">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M8 3h8l1 5H7l1-5Z"/><path d="M6 8h12l-1.2 11.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 8Z"/><path d="M9 12v4M15 12v4"/></svg>
+      <div>Jual</div>
+    </div>
+    <div class="tab" data-tab="kiriman">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M1 12V7a1 1 0 0 1 1-1h9v9H2a1 1 0 0 1-1-1Z"/><path d="M11 8h4l4 4v4h-8V8Z"/><circle cx="5.5" cy="18.5" r="1.8"/><circle cx="16.5" cy="18.5" r="1.8"/></svg>
+      <div>Kiriman</div>
+    </div>
+    <div class="tab" data-tab="pcs">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="9" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="15" r="1" fill="currentColor" stroke="none"/></svg>
+      <div>Pcs</div>
+    </div>
+    <div class="tab" data-tab="dandang">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 2c1.5 3 3 4.5 3 7a3 3 0 1 1-6 0c0-2.5 1.5-4 3-7Z"/><path d="M8 14c-2 1-4 3-4 6a2 2 0 0 0 2 2c3 0 5-2 6-4"/><path d="M16 14c2 1 4 3 4 6a2 2 0 0 1-2 2c-3 0-5-2-6-4"/></svg>
+      <div>Dandang</div>
+    </div>
+    <div class="tab" data-tab="rusak">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M6 6l1 14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-14"/><path d="M10 11v6M14 11v6"/></svg>
+      <div>Rusak</div>
+    </div>
+    <div class="tab" data-tab="riwayat">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5Z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h5"/></svg>
+      <div>Riwayat</div>
+    </div>
+  </nav>
+
+  <!-- STOK -->
+  <section class="panel active" id="panel-stok">
+    <div id="stokBanner"></div>
+
+    <!-- Ringkasan status ala "Your plan" -->
+    <div class="section-title">Ringkasan Hari Ini</div>
+    <div class="plan-grid" id="planGrid"></div>
+
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg> Sisa Stok Bahan Baku</h2>
+      <p class="sub">Otomatis berkurang setiap ada input penjualan minuman, item pcs, atau proses dandang. Tap tombol ✏️ pada bahan untuk mengoreksi angka jika ada salah hitung atau salah komunikasi.</p>
+      <div id="stokList"></div>
+    </div>
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/></svg> Buat Laporan PDF</h2>
+      <p class="sub">Cetak laporan sisa stok hari ini beserta ringkasan penjualan, item pcs terjual, dan bahan rusak.</p>
+      <button class="btn btn-primary" onclick="generatePDF()">⬇️ Input Laporan PDF Hari Ini</button>
+    </div>
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Riwayat Koreksi Stok Hari Ini</h2>
+      <p class="sub">Ketuk angka stok pada daftar di atas untuk membetulkan jumlah jika ada salah input atau salah komunikasi jumlah kiriman/penjualan.</p>
+      <div id="koreksiLog"><div class="empty">Belum ada koreksi stok hari ini.</div></div>
+    </div>
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg> Reset Stok Awal</h2>
+      <p class="sub">Gunakan hanya saat mulai periode SO baru (kiriman dari warehouse datang). Ini akan mengisi ulang semua stok ke jumlah default & menghapus catatan transaksi hari berjalan.</p>
+      <button class="btn btn-ghost" onclick="openResetModal()">Atur Ulang Stok Awal</button>
+    </div>
+  </section>
+
+  <!-- INPUT JUAL -->
+  <section class="panel" id="panel-jual">
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><path d="M8 3h8l1 5H7l1-5Z"/><path d="M6 8h12l-1.2 11.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 8Z"/><path d="M9 12v4M15 12v4"/></svg> Input Penjualan Minuman</h2>
+      <p class="sub">Pilih menu, jumlah porsi, dan apakah take away (pakai cup plastik). Bahan akan otomatis terpotong dari stok sesuai resep.</p>
+      <label class="field">
+        <span class="lbl">Menu Minuman</span>
+        <select id="menuSelect"></select>
+      </label>
+      <div class="row2">
+        <label class="field">
+          <span class="lbl">Jumlah Porsi</span>
+          <input type="number" id="menuQty" min="1" value="1" inputmode="numeric">
+        </label>
+        <label class="field">
+          <span class="lbl">Take Away?</span>
+          <select id="menuTakeaway">
+            <option value="0">Dine in (tanpa cup)</option>
+            <option value="1">Take away (pakai cup)</option>
+          </select>
+        </label>
+      </div>
+      <div id="optionalWrap"></div>
+      <div id="jualPreview"></div>
+      <button class="btn btn-primary" onclick="submitJual()">✅ Catat Penjualan & Kurangi Stok</button>
+    </div>
+
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h10M7 16h6"/></svg> Transaksi Penjualan Hari Ini</h2>
+      <div id="kasirSyncInfo"></div>
+      <div id="jualLog"><div class="empty">Belum ada transaksi.</div></div>
+    </div>
+  </section>
+
+  <!-- KIRIMAN -->
+  <section class="panel" id="panel-kiriman">
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><path d="M1 12V7a1 1 0 0 1 1-1h9v9H2a1 1 0 0 1-1-1Z"/><path d="M11 8h4l4 4v4h-8V8Z"/><circle cx="5.5" cy="18.5" r="1.8"/><circle cx="16.5" cy="18.5" r="1.8"/></svg> Kiriman Bahan Baku dari Warehouse</h2>
+      <p class="sub">Catat barang masuk hari ini. Jumlah yang diinput akan <b>ditambahkan</b> ke stok saat ini (bukan menggantikan). Bisa input beberapa bahan sekaligus dalam satu kiriman.</p>
+
+      <label class="field">
+        <span class="lbl">Jenis Bahan</span>
+        <select id="kirimanKategori">
+          <option value="bahan">Bahan Baku (rempah, cair, dll)</option>
+          <option value="pcs">Item Satuan (Pcs)</option>
+        </select>
+      </label>
+
+      <div id="kirimanRows"></div>
+
+      <button class="btn btn-ghost btn-sm" style="margin-bottom:14px;" onclick="addKirimanRow()">＋ Tambah Baris Bahan</button>
+
+      <label class="field">
+        <span class="lbl">Catatan Kiriman (opsional)</span>
+        <input type="text" id="kirimanNote" placeholder="cth: no. surat jalan, nama supplier...">
+      </label>
+
+      <div id="kirimanPreview"></div>
+      <button class="btn btn-primary" onclick="submitKiriman()">📥 Catat Kiriman & Tambah Stok</button>
+    </div>
+
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h10M7 16h6"/></svg> Riwayat Kiriman Hari Ini</h2>
+      <div id="kirimanLog"><div class="empty">Belum ada kiriman tercatat.</div></div>
+    </div>
+  </section>
+
+  <!-- ITEM PCS -->
+  <section class="panel" id="panel-pcs">
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="9" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="15" r="1" fill="currentColor" stroke="none"/></svg> Penjualan Item Satuan (Pcs)</h2>
+      <p class="sub">Untuk tinting kacang, kue bangke jahe, kue bolu, dan wedang uwuh — dijual per pcs, bukan diracik.</p>
+      <label class="field">
+        <span class="lbl">Item</span>
+        <select id="pcsSelect"></select>
+      </label>
+      <label class="field">
+        <span class="lbl">Jumlah Terjual (pcs)</span>
+        <input type="number" id="pcsQty" min="1" value="1" inputmode="numeric">
+      </label>
+      <div id="pcsPreview"></div>
+      <button class="btn btn-primary" onclick="submitPcs()">✅ Catat Penjualan Pcs</button>
+    </div>
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h10M7 16h6"/></svg> Transaksi Item Pcs Hari Ini</h2>
+      <div id="pcsLog"><div class="empty">Belum ada transaksi.</div></div>
+    </div>
+  </section>
+
+  <!-- DANDANG -->
+  <section class="panel" id="panel-dandang">
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><path d="M12 2c1.5 3 3 4.5 3 7a3 3 0 1 1-6 0c0-2.5 1.5-4 3-7Z"/><path d="M8 14c-2 1-4 3-4 6a2 2 0 0 0 2 2c3 0 5-2 6-4"/><path d="M16 14c2 1 4 3 4 6a2 2 0 0 1-2 2c-3 0-5-2-6-4"/></svg> Proses Dandang (Set Racikan)</h2>
+      <p class="sub">Setiap 1 galon air didandang membutuhkan 1 toples set racikan dandang + 4 gram kayu secang. Input berapa galon yang direbus hari ini.</p>
+      <label class="field">
+        <span class="lbl">Jumlah Galon Diproses</span>
+        <input type="number" id="dandangQty" min="1" value="1" inputmode="numeric">
+      </label>
+      <div id="dandangPreview"></div>
+      <button class="btn btn-primary" onclick="submitDandang()">✅ Catat Proses Dandang</button>
+    </div>
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h10M7 16h6"/></svg> Riwayat Proses Dandang Hari Ini</h2>
+      <div id="dandangLog"><div class="empty">Belum ada proses dandang.</div></div>
+    </div>
+  </section>
+
+  <!-- RUSAK -->
+  <section class="panel" id="panel-rusak">
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M6 6l1 14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-14"/><path d="M10 11v6M14 11v6"/></svg> Input Bahan Rusak / Busuk</h2>
+      <p class="sub">Dicatat terpisah dari penjualan. Berat/jumlah ditimbang manual lalu diinput di sini — akan tetap mengurangi stok tapi ditandai sebagai "rusak" pada laporan.</p>
+      <label class="field">
+        <span class="lbl">Bahan</span>
+        <select id="rusakSelect"></select>
+      </label>
+      <label class="field">
+        <span class="lbl">Jumlah Rusak (<span id="rusakUnit">gram</span>)</span>
+        <input type="number" id="rusakQty" min="0" step="0.1" inputmode="decimal">
+      </label>
+      <label class="field">
+        <span class="lbl">Catatan (opsional)</span>
+        <input type="text" id="rusakNote" placeholder="cth: layu, jamur, kadaluarsa...">
+      </label>
+      <button class="btn btn-danger" onclick="submitRusak()">🗑️ Catat Bahan Rusak</button>
+    </div>
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h10M7 16h6"/></svg> Catatan Bahan Rusak Hari Ini</h2>
+      <div id="rusakLog"><div class="empty">Belum ada catatan bahan rusak.</div></div>
+    </div>
+  </section>
+
+  <!-- RIWAYAT -->
+  <section class="panel" id="panel-riwayat">
+    <div class="card">
+      <h2><svg class="icon" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5Z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h5"/></svg> Riwayat Laporan Tersimpan</h2>
+      <p class="sub">Laporan PDF yang pernah dibuat. Data ini tersimpan di perangkat ini saja.</p>
+      <div id="historyList"><div class="empty">Belum ada laporan tersimpan.</div></div>
+    </div>
+  </section>
+</main>
+
+<div class="install-banner" id="installBanner">
+  <div>
+    <b>Install SO Rempah</b>
+    <span>Pasang di layar utama untuk akses cepat offline</span>
+  </div>
+  <button class="btn btn-dark btn-sm" onclick="doInstall()">Install</button>
+  <button class="btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="dismissInstall()"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========================= DATA MASTER ========================= */
+
+// Satuan dasar: gram untuk padatan, mili(ml) untuk cair, pcs untuk satuan
+const BAHAN = {
+  bunga_lawang:   { nama:"Bunga Lawang",        unit:"gram", stokAwal:1000 },
+  cabe_jawa:      { nama:"Cabe Jawa",            unit:"gram", stokAwal:1000 },
+  cengkeh:        { nama:"Cengkeh",              unit:"gram", stokAwal:1000 }, // qty tidak disebut eksplisit awalnya, default 1000g
+  gula_aren_cair: { nama:"Gula Aren Cair",       unit:"ml",   stokAwal:12000 },
+  gula_batu_wu:   { nama:"Gula Batu Wedang Uwuh",unit:"gram", stokAwal:250 },
+  jahe_merah:     { nama:"Jahe Merah",           unit:"gram", stokAwal:12000 },
+  kapulaga:       { nama:"Kapulaga",             unit:"gram", stokAwal:1000 },
+  kayu_manis:     { nama:"Kayu Manis",           unit:"gram", stokAwal:1000 },
+  kayu_secang:    { nama:"Kayu Secang",          unit:"gram", stokAwal:1000 },
+  kencur:         { nama:"Kencur",               unit:"gram", stokAwal:2000 },
+  lemon:          { nama:"Lemon",                unit:"ml",   stokAwal:2000 }, // catatan: satuan asli kg buah, dipakai ml perasan+iris — lihat catatan lemon
+  madu:           { nama:"Madu",                 unit:"ml",   stokAwal:6000 },
+  purwaceng:      { nama:"Purwaceng",            unit:"ml",   stokAwal:500 },
+  temulawak:      { nama:"Temulawak",            unit:"gram", stokAwal:2000 },
+  daun_pandan:    { nama:"Daun Pandan",          unit:"gram", stokAwal:50 },
+  sereh:          { nama:"Sereh",                unit:"gram", stokAwal:200 },
+  kopi_bandung:   { nama:"Kopi Aroma Bandung",   unit:"ml",   stokAwal:250 },
+  set_dandang:    { nama:"Set Racikan Dandang",  unit:"toples", stokAwal:15 },
+  susu:           { nama:"Susu",                 unit:"gram", stokAwal:4000 },
+  telur_bebek:    { nama:"Telur Bebek",          unit:"butir", stokAwal:15 },
+  cup_plastik:    { nama:"Cup Plastik (take away)", unit:"pcs", stokAwal:300 },
+};
+
+// Item yang dijual per pcs langsung (bukan racikan minuman)
+const ITEM_PCS = {
+  tinting_kacang: { nama:"Tinting Kacang", stokAwal:0, note:"Belum diisi / belum datang" },
+  kue_bangke_jahe:{ nama:"Kue Bangke Jahe", stokAwal:50 },
+  kue_bolu:       { nama:"Kue Bolu", stokAwal:60 },
+  wedang_uwuh_pcs:{ nama:"Wedang Uwuh (pcs)", stokAwal:30 },
+};
+
+// Resep per 1 PORSI minuman (sudah dikonversi dari basis "per 5 porsi" dsb ke per 1 porsi)
+// bunga lawang: 3g/5porsi = 0.6g/porsi; cabe jawa: 3g/5=0.6; cengkeh: 2g/5=0.4;
+// kapulaga: 2g/5=0.4; kayu manis: 1g/5=0.2; daun pandan: 2g/5=0.4; sereh: 2g/5=0.4 (opsional)
+const REMPAH_DASAR = {
+  bunga_lawang: 0.6, cabe_jawa: 0.6, cengkeh: 0.4, kapulaga: 0.4, kayu_manis: 0.2,
+  jahe_merah: 30, gula_aren_cair: 30, madu: 10
+};
+const OPSIONAL = { sereh: 0.4, daun_pandan: 0.4 }; // opsional, diinput terpisah per porsi jika dicentang
+
+const MENU = {
+  rempah_original: {
+    nama:"Rempah Original",
+    bahan:{ ...REMPAH_DASAR }
+  },
+  rempah_jahe_lemon: {
+    nama:"Rempah Jahe Lemon",
+    bahan:{ ...REMPAH_DASAR, lemon:5 } // + 1 iris lemon dicatat manual terpisah (lihat catatan)
+  },
+  rempah_lemon_susu: {
+    nama:"Rempah Lemon Susu",
+    bahan:{ ...REMPAH_DASAR, lemon:5, susu:30 }
+  },
+  bir_pletok_susu: {
+    nama:"Bir Pletok Susu",
+    bahan:{ ...REMPAH_DASAR, kayu_secang:4, susu:30 }
+  },
+  wedang_uwuh: {
+    nama:"Wedang Uwuh",
+    bahan:{ jahe_merah:15, gula_batu_wu:10 },
+    pcsBahan:{ wedang_uwuh_pcs:1 }
+  },
+  rempah_kencur_madu: {
+    nama:"Rempah Kencur Madu",
+    bahan:{ cengkeh:0.4, kapulaga:0.4, bunga_lawang:0.6, cabe_jawa:0.6, kayu_manis:0.2, jahe_merah:30, kencur:10, gula_aren_cair:30, madu:10, lemon:5 }
+  },
+  bir_pletok_original: {
+    nama:"Bir Pletok Original",
+    bahan:{ ...REMPAH_DASAR, kayu_secang:4 }
+  },
+  rempah_temulawak_susu: {
+    nama:"Rempah Temulawak Susu",
+    bahan:{ cengkeh:0.4, kapulaga:0.4, bunga_lawang:0.6, cabe_jawa:0.6, kayu_manis:0.2, jahe_merah:30, temulawak:20, gula_aren_cair:30, madu:10, susu:30, lemon:5 }
+  },
+  rempah_temulawak_original: {
+    nama:"Rempah Temulawak Original",
+    bahan:{ cengkeh:0.4, kapulaga:0.4, bunga_lawang:0.6, cabe_jawa:0.6, kayu_manis:0.2, jahe_merah:30, temulawak:20, gula_aren_cair:30, madu:10, lemon:5 }
+  },
+  stmj: {
+    nama:"STMJ",
+    bahan:{ ...REMPAH_DASAR, susu:30, telur_bebek:1 }
+  },
+  rempah_susu_aren: {
+    nama:"Rempah Susu Aren",
+    bahan:{ ...REMPAH_DASAR, susu:30 }
+  },
+  kopi_ranjang_hitam: {
+    nama:"Kopi Ranjang Hitam",
+    bahan:{ cengkeh:0.4, kapulaga:0.4, bunga_lawang:0.6, cabe_jawa:0.6, kayu_manis:0.2, jahe_merah:30, gula_aren_cair:30, kopi_bandung:10, purwaceng:5 }
+  },
+  kopi_ranjang_susu: {
+    nama:"Kopi Ranjang Susu",
+    bahan:{ cengkeh:0.4, kapulaga:0.4, bunga_lawang:0.6, cabe_jawa:0.6, kayu_manis:0.2, jahe_merah:30, gula_aren_cair:30, kopi_bandung:10, purwaceng:5, susu:30 }
+  },
+};
+
+const HARGA_PCS = {
+  tinting_kacang:  { satu:2000, tiga:5000 },
+  kue_bangke_jahe: { satu:2000, tiga:5000 },
+  kue_bolu:        { satu:2000, tiga:5000 },
+};
+
+const DANDANG = { set_dandang:1, kayu_secang:4 }; // per 1 galon
+
+/* ========================= STATE / STORAGE ========================= */
+
+const LS_STOK = "so_stok_v1";
+const LS_PCS_STOK = "so_pcs_stok_v1";
+const LS_TX_JUAL = "so_tx_jual_v1";
+const LS_TX_PCS = "so_tx_pcs_v1";
+const LS_TX_DANDANG = "so_tx_dandang_v1";
+const LS_TX_RUSAK = "so_tx_rusak_v1";
+const LS_TX_KIRIMAN = "so_tx_kiriman_v1";
+const LS_TX_KOREKSI = "so_tx_koreksi_v1";
+const LS_HISTORY = "so_history_v1";
+const LS_LASTDATE = "so_lastdate_v1";
+
+function todayStr(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+function loadJSON(key, fallback){
+  try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e){ return fallback; }
+}
+function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+function defaultStok(){
+  const s = {};
+  for(const k in BAHAN) s[k] = BAHAN[k].stokAwal;
+  return s;
+}
+function defaultPcsStok(){
+  const s = {};
+  for(const k in ITEM_PCS) s[k] = ITEM_PCS[k].stokAwal;
+  return s;
+}
+
+let stok = loadJSON(LS_STOK, defaultStok());
+let pcsStok = loadJSON(LS_PCS_STOK, defaultPcsStok());
+let txJual = loadJSON(LS_TX_JUAL, []);
+let txPcs = loadJSON(LS_TX_PCS, []);
+let txDandang = loadJSON(LS_TX_DANDANG, []);
+let txRusak = loadJSON(LS_TX_RUSAK, []);
+let txKiriman = loadJSON(LS_TX_KIRIMAN, []);
+let txKoreksi = loadJSON(LS_TX_KOREKSI, []);
+let history = loadJSON(LS_HISTORY, []);
+
+// auto-reset transaksi harian jika tanggal berganti (stok tetap carry-over)
+function checkDayRollover(){
+  const last = localStorage.getItem(LS_LASTDATE);
+  const now = todayStr();
+  if(last && last !== now){
+    txJual = []; txPcs = []; txDandang = []; txRusak = []; txKiriman = []; txKoreksi = [];
+    saveJSON(LS_TX_JUAL, txJual); saveJSON(LS_TX_PCS, txPcs);
+    saveJSON(LS_TX_DANDANG, txDandang); saveJSON(LS_TX_RUSAK, txRusak);
+    saveJSON(LS_TX_KIRIMAN, txKiriman); saveJSON(LS_TX_KOREKSI, txKoreksi);
+  }
+  localStorage.setItem(LS_LASTDATE, now);
+}
+checkDayRollover();
+
+function persistAll(){
+  saveJSON(LS_STOK, stok);
+  saveJSON(LS_PCS_STOK, pcsStok);
+  saveJSON(LS_TX_JUAL, txJual);
+  saveJSON(LS_TX_PCS, txPcs);
+  saveJSON(LS_TX_DANDANG, txDandang);
+  saveJSON(LS_TX_RUSAK, txRusak);
+  saveJSON(LS_TX_KIRIMAN, txKiriman);
+  saveJSON(LS_TX_KOREKSI, txKoreksi);
+  saveJSON(LS_HISTORY, history);
+}
+
+/* ========================= UI HELPERS ========================= */
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function fmt(n){
+  if(Number.isInteger(n)) return n.toLocaleString('id-ID');
+  return n.toLocaleString('id-ID', {maximumFractionDigits:2});
+}
+
+function unitLabel(u){
+  return u === "ml" ? "ml" : u === "gram" ? "g" : u === "butir" ? "butir" : u === "toples" ? "toples" : "pcs";
+}
+
+/* ========================= TABS ========================= */
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+    if(tab.dataset.tab === 'stok') renderStok();
+    if(tab.dataset.tab === 'riwayat') renderHistory();
+    if(tab.dataset.tab === 'kiriman' && kirimanRowCount === 0) addKirimanRow();
+  });
+});
+
+/* ========================= RENDER: STOK ========================= */
+
+function renderStok(){
+  if(typeof renderHeroAndPlan === 'function') renderHeroAndPlan();
+  const list = document.getElementById('stokList');
+  let html = '';
+  let critCount = 0, lowCount = 0;
+
+  const groups = [
+    { label:"Rempah Kering", keys:["bunga_lawang","cabe_jawa","cengkeh","kapulaga","kayu_manis","kayu_secang","kencur","temulawak","daun_pandan","sereh"] },
+    { label:"Cair / Basah", keys:["gula_aren_cair","lemon","madu","purwaceng","kopi_bandung"] },
+    { label:"Lainnya", keys:["gula_batu_wu","jahe_merah","susu","telur_bebek","set_dandang","cup_plastik"] },
+  ];
+
+  groups.forEach(g=>{
+    html += `<div class="group-label">${g.label}</div>`;
+    g.keys.forEach(k=>{
+      const b = BAHAN[k];
+      const cur = stok[k];
+      const pct = b.stokAwal > 0 ? (cur / b.stokAwal) * 100 : 0;
+      let cls = 'ok', barCls = '';
+      if(pct <= 15){ cls='crit'; barCls='crit'; critCount++; }
+      else if(pct <= 35){ cls='low'; barCls='warn'; lowCount++; }
+      html += `
+        <div class="stock-item" id="srow_bahan_${k}">
+          <div>
+            <div class="name">${b.nama}</div>
+            <div class="meta">awal: ${fmt(b.stokAwal)} ${unitLabel(b.unit)}</div>
+            <div class="stock-bar"><i class="${barCls}" style="width:${Math.max(0,Math.min(100,pct))}%"></i></div>
+          </div>
+          <div class="qty ${cls}" onclick="openStockEdit('bahan','${k}')" title="Ketuk untuk edit">${fmt(Math.max(0,cur))} <span style="font-size:11px;font-weight:600;">${unitLabel(b.unit)}</span> <span class="edit-pencil">✎</span></div>
+          <div class="edit-row" id="erow_bahan_${k}" style="display:none;">
+            <input type="number" step="0.1" id="einput_bahan_${k}" value="${cur}">
+            <button class="btn btn-primary btn-sm" onclick="saveStockEdit('bahan','${k}')">Simpan</button>
+            <button class="btn btn-ghost btn-sm" onclick="closeStockEdit('bahan','${k}')">Batal</button>
+          </div>
+        </div>`;
+    });
+  });
+
+  // pcs items
+  html += `<div class="group-label">Item Satuan (Pcs)</div>`;
+  for(const k in ITEM_PCS){
+    const it = ITEM_PCS[k];
+    const cur = pcsStok[k];
+    const pct = it.stokAwal > 0 ? (cur/it.stokAwal)*100 : (cur>0?100:0);
+    let cls='ok', barCls='';
+    if(it.stokAwal === 0){ cls = cur>0?'ok':'crit'; if(cur<=0) critCount++; }
+    else if(pct<=15){cls='crit';barCls='crit'; critCount++;}
+    else if(pct<=35){cls='low';barCls='warn'; lowCount++;}
+    html += `
+      <div class="stock-item" id="srow_pcs_${k}">
+        <div>
+          <div class="name">${it.nama}</div>
+          <div class="meta">${it.note ? it.note : 'awal: '+fmt(it.stokAwal)+' pcs'}</div>
+          ${it.stokAwal>0 ? `<div class="stock-bar"><i class="${barCls}" style="width:${Math.max(0,Math.min(100,pct))}%"></i></div>`:''}
+        </div>
+        <div class="qty ${cls}" onclick="openStockEdit('pcs','${k}')" title="Ketuk untuk edit">${fmt(Math.max(0,cur))} <span style="font-size:11px;font-weight:600;">pcs</span> <span class="edit-pencil">✎</span></div>
+        <div class="edit-row" id="erow_pcs_${k}" style="display:none;">
+          <input type="number" step="1" id="einput_pcs_${k}" value="${cur}">
+          <button class="btn btn-primary btn-sm" onclick="saveStockEdit('pcs','${k}')">Simpan</button>
+          <button class="btn btn-ghost btn-sm" onclick="closeStockEdit('pcs','${k}')">Batal</button>
+        </div>
+      </div>`;
+  }
+
+  list.innerHTML = html;
+
+  const banner = document.getElementById('stokBanner');
+  if(critCount > 0){
+    banner.innerHTML = `<div class="banner danger">⚠️ <div><b>${critCount} bahan kritis</b> (sisa di bawah 15%). Segera minta restock ke warehouse.</div></div>`;
+  } else if(lowCount > 0){
+    banner.innerHTML = `<div class="banner warn">🟠 <b>${lowCount} bahan mulai menipis</b> (di bawah 35%). Pantau untuk restock berikutnya.</div>`;
+  } else {
+    banner.innerHTML = `<div class="banner info">✅ Semua stok dalam kondisi aman.</div>`;
+  }
+}
+
+/* ========================= EDIT STOK MANUAL (KOREKSI) ========================= */
+
+function openStockEdit(kategori, key){
+  // tutup edit row lain yang mungkin terbuka
+  document.querySelectorAll('.edit-row').forEach(r=>r.style.display='none');
+  const row = document.getElementById(`erow_${kategori}_${key}`);
+  if(!row) return;
+  row.style.display = 'flex';
+  const input = document.getElementById(`einput_${kategori}_${key}`);
+  input.focus();
+  input.select();
+}
+
+function closeStockEdit(kategori, key){
+  const row = document.getElementById(`erow_${kategori}_${key}`);
+  if(row) row.style.display = 'none';
+}
+
+function saveStockEdit(kategori, key){
+  const input = document.getElementById(`einput_${kategori}_${key}`);
+  const newVal = parseFloat(input.value);
+  if(isNaN(newVal) || newVal < 0){ toast('Masukkan angka yang valid'); return; }
+
+  const nama = kategori === 'pcs' ? ITEM_PCS[key].nama : BAHAN[key].nama;
+  const unit = kategori === 'pcs' ? 'pcs' : unitLabel(BAHAN[key].unit);
+  const oldVal = kategori === 'pcs' ? pcsStok[key] : stok[key];
+
+  if(Math.abs(newVal - oldVal) < 0.0001){
+    closeStockEdit(kategori, key);
+    return;
+  }
+
+  if(!confirm(`Ubah stok "${nama}" dari ${fmt(oldVal)} ${unit} menjadi ${fmt(newVal)} ${unit}?`)){
+    return;
+  }
+
+  if(kategori === 'pcs') pcsStok[key] = newVal;
+  else stok[key] = newVal;
+
+  txKoreksi.push({
+    id: Date.now(),
+    nama, key, kategori, unit,
+    dari: oldVal, ke: newVal, selisih: newVal - oldVal,
+    time: new Date().toISOString(),
+  });
+
+  persistAll();
+  toast(`✎ Stok ${nama} dikoreksi jadi ${fmt(newVal)} ${unit}`);
+  renderStok();
+  renderKoreksiLog();
+}
+
+function renderKoreksiLog(){
+  const box = document.getElementById('koreksiLog');
+  if(!box) return;
+  if(txKoreksi.length === 0){ box.innerHTML = `<div class="empty">Belum ada koreksi stok hari ini.</div>`; return; }
+  let html = '';
+  [...txKoreksi].reverse().forEach(t=>{
+    const time = new Date(t.time).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const naik = t.selisih > 0;
+    html += `<div class="history-item">
+      <div>
+        <div class="d">${t.nama}</div>
+        <div class="s">${fmt(t.dari)} → ${fmt(t.ke)} ${t.unit} (${naik?'+':''}${fmt(t.selisih)}) · ${time}</div>
+      </div>
+    </div>`;
+  });
+  box.innerHTML = html;
+}
+
+/* ========================= INPUT JUAL (MENU) ========================= */
+
+const menuSelect = document.getElementById('menuSelect');
+for(const k in MENU){
+  const opt = document.createElement('option');
+  opt.value = k; opt.textContent = MENU[k].nama;
+  menuSelect.appendChild(opt);
+}
+
+function hasOptionalRelevance(menuKey){
+  // sereh & daun pandan opsional untuk semua menu rempah kecuali wedang uwuh
+  return menuKey !== 'wedang_uwuh';
+}
+function hasLemonSliceNote(menuKey){
+  return menuKey === 'rempah_jahe_lemon';
+}
+
+function renderOptionalWrap(){
+  const menuKey = menuSelect.value;
+  const wrap = document.getElementById('optionalWrap');
+  if(!hasOptionalRelevance(menuKey)){ wrap.innerHTML=''; return; }
+  wrap.innerHTML = `
+    <div style="margin:4px 0 14px;">
+      <span class="lbl" style="display:block;font-size:12.5px;font-weight:700;color:var(--ink-soft);margin-bottom:8px;">Tambahan Opsional (per porsi)</span>
+      <span class="chip-toggle" id="optSereh" onclick="toggleOpt('sereh')">🌿 Sereh (+0.4g/porsi)</span>
+      <span class="chip-toggle" id="optPandan" onclick="toggleOpt('daun_pandan')">🍃 Daun Pandan (+0.4g/porsi)</span>
+      ${hasLemonSliceNote(menuKey) ? `<div style="margin-top:6px;"><span class="chip-toggle" id="optLemonIris" onclick="toggleOpt('lemon_iris')">🍋 +1 Iris Lemon/porsi (manual)</span></div>` : ''}
+    </div>`;
+}
+let optState = { sereh:false, daun_pandan:false, lemon_iris:false };
+function toggleOpt(key){
+  optState[key] = !optState[key];
+  const idMap = { sereh:'optSereh', daun_pandan:'optPandan', lemon_iris:'optLemonIris' };
+  document.getElementById(idMap[key]).classList.toggle('on', optState[key]);
+  renderJualPreview();
+}
+
+menuSelect.addEventListener('change', ()=>{ optState={sereh:false,daun_pandan:false,lemon_iris:false}; renderOptionalWrap(); renderJualPreview(); });
+document.getElementById('menuQty').addEventListener('input', renderJualPreview);
+document.getElementById('menuTakeaway').addEventListener('change', renderJualPreview);
+
+function computeUsage(menuKey, qty, takeaway, o){
+  o = o || {};
+  const menu = MENU[menuKey];
+  const usage = {}; // key -> amount
+  for(const b in menu.bahan) usage[b] = (usage[b]||0) + menu.bahan[b]*qty;
+  if(o.sereh) usage.sereh = (usage.sereh||0) + OPSIONAL.sereh*qty;
+  if(o.pandan) usage.daun_pandan = (usage.daun_pandan||0) + OPSIONAL.daun_pandan*qty;
+  if(o.lemonIris) usage.lemon = (usage.lemon||0) + 1*qty; // iris lemon dicatat manual, tidak memotong stok ml lemon
+  if(takeaway) usage.cup_plastik = (usage.cup_plastik||0) + 1*qty;
+  let pcsUsage = {};
+  if(menu.pcsBahan){ for(const p in menu.pcsBahan) pcsUsage[p] = (pcsUsage[p]||0) + menu.pcsBahan[p]*qty; }
+  return { usage, pcsUsage };
+}
+function computeJualUsage(menuKey, qty, takeaway){
+  return computeUsage(menuKey, qty, takeaway, { sereh:optState.sereh, pandan:optState.daun_pandan, lemonIris:optState.lemon_iris });
+}
+
+// sign = -1 kurangi stok, +1 kembalikan stok
+function applyUsage(usage, pcsUsage, sign, menuKey, lemonIris){
+  const r = (x)=>Math.round(x*10000)/10000;
+  for(const k in usage){
+    if(k==='lemon' && lemonIris && !MENU[menuKey].bahan.lemon) continue;
+    stok[k] = r((stok[k]||0) + sign*usage[k]);
+  }
+  for(const k in pcsUsage) pcsStok[k] = r((pcsStok[k]||0) + sign*pcsUsage[k]);
+}
+
+function renderJualPreview(){
+  const menuKey = menuSelect.value;
+  const qty = parseInt(document.getElementById('menuQty').value) || 0;
+  const takeaway = document.getElementById('menuTakeaway').value === '1';
+  const box = document.getElementById('jualPreview');
+  if(!menuKey || qty<=0){ box.innerHTML=''; return; }
+  const { usage, pcsUsage } = computeJualUsage(menuKey, qty, takeaway);
+  let html = `<div class="group-label">Bahan Terpakai</div>`;
+  let insufficientList = [];
+  for(const k in usage){
+    if(k==='lemon' && optState.lemon_iris && !MENU[menuKey].bahan.lemon){
+      html += `<div class="receipt-line"><span>Lemon (iris, manual)</span><span>${fmt(usage[k])} iris</span></div>`;
+      continue;
+    }
+    const b = BAHAN[k];
+    const remaining = stok[k] - usage[k];
+    if(remaining < 0) insufficientList.push(b.nama);
+    html += `<div class="receipt-line${remaining<0?' neg':''}"><span>${b.nama}</span><span>-${fmt(usage[k])} ${unitLabel(b.unit)}</span></div>`;
+  }
+  for(const k in pcsUsage){
+    const it = ITEM_PCS[k];
+    const remaining = pcsStok[k] - pcsUsage[k];
+    if(remaining < 0) insufficientList.push(it.nama);
+    html += `<div class="receipt-line${remaining<0?' neg':''}"><span>${it.nama}</span><span>-${fmt(pcsUsage[k])} pcs</span></div>`;
+  }
+  box.innerHTML = html;
+  if(insufficientList.length){
+    box.innerHTML = `<div class="banner danger">⚠️ Stok tidak cukup: ${insufficientList.join(', ')}</div>` + html;
+  }
+}
+renderOptionalWrap();
+renderJualPreview();
+
+function submitJual(){
+  const menuKey = menuSelect.value;
+  const qty = parseInt(document.getElementById('menuQty').value) || 0;
+  const takeaway = document.getElementById('menuTakeaway').value === '1';
+  if(qty<=0){ toast('Jumlah porsi harus lebih dari 0'); return; }
+  const { usage, pcsUsage } = computeJualUsage(menuKey, qty, takeaway);
+
+  for(const k in usage){
+    if(k==='lemon' && optState.lemon_iris && !MENU[menuKey].bahan.lemon) continue;
+    if(stok[k] - usage[k] < -0.0001){ toast('Stok '+BAHAN[k].nama+' tidak cukup!'); return; }
+  }
+  for(const k in pcsUsage){
+    if(pcsStok[k] - pcsUsage[k] < -0.0001){ toast('Stok '+ITEM_PCS[k].nama+' tidak cukup!'); return; }
+  }
+
+  for(const k in usage){
+    if(k==='lemon' && optState.lemon_iris && !MENU[menuKey].bahan.lemon) continue;
+    stok[k] -= usage[k];
+  }
+  for(const k in pcsUsage) pcsStok[k] -= pcsUsage[k];
+
+  txJual.push({
+    id: Date.now(),
+    menu: MENU[menuKey].nama,
+    menuKey, qty, takeaway,
+    lemonIris: optState.lemon_iris ? qty : 0,
+    sereh: optState.sereh, pandan: optState.daun_pandan,
+    usage, pcsUsage,
+    time: new Date().toISOString(),
+  });
+  persistAll();
+  toast(`✅ ${qty} porsi ${MENU[menuKey].nama} dicatat`);
+  document.getElementById('menuQty').value = 1;
+  renderJualPreview();
+  renderJualLog();
+  renderStok();
+}
+
+const TRASH_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/></svg>';
+
+function renderJualLog(){
+  const box = document.getElementById('jualLog');
+  if(txJual.length===0){ box.innerHTML = `<div class="empty">Belum ada transaksi.</div>`; return; }
+  let html='';
+  [...txJual].reverse().forEach(t=>{
+    const time = new Date(t.time).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const src = t.source==='kasir' ? `<span class="src-badge">Kasir${t.queue?' #'+String(t.queue).padStart(2,'0'):''}</span>` : '';
+    html += `<div class="history-item">
+      <div>
+        <div class="d">${t.menu} × ${t.qty} ${src}</div>
+        <div class="s">${t.takeaway?'Take away':'Dine in'} · ${time}${t.sereh?' · +sereh':''}${t.pandan?' · +pandan':''}${t.lemonIris?' · +iris lemon':''}</div>
+      </div>
+      <button class="btn-del" title="Hapus & kembalikan stok" onclick="deleteJual(${t.id})">${TRASH_SVG}</button>
+    </div>`;
+  });
+  box.innerHTML = html;
+}
+
+function deleteJual(id){
+  const t = txJual.find(x=>x.id===id);
+  if(!t) return;
+  const dariKasir = t.source==='kasir';
+  const msg = `Hapus "${t.menu} × ${t.qty}"?\n\nStok bahan akan dikembalikan.` +
+    (dariKasir ? `\n\nCatatan: ini berasal dari Kasir. Yang dihapus hanya catatan di SO — transaksi di Kasir tetap ada.` : '');
+  if(!confirm(msg)) return;
+  const u = t.usage ? { usage:t.usage, pcsUsage:t.pcsUsage||{} }
+                    : computeUsage(t.menuKey, t.qty, t.takeaway, { sereh:t.sereh, pandan:t.pandan, lemonIris:t.lemonIris });
+  applyUsage(u.usage, u.pcsUsage, +1, t.menuKey, t.lemonIris);
+  txJual = txJual.filter(x=>x.id!==id);
+  if(t.ref){ const sy = loadKasirSync(); if(sy.applied[t.ref]){ sy.applied[t.ref].deleted = true; saveJSON(LS_KASIR_SYNC, sy); } }
+  persistAll();
+  toast('🗑️ Transaksi dihapus, stok dikembalikan');
+  renderJualLog(); renderJualPreview(); renderStok(); renderKasirInfo();
+}
+renderJualLog();
+
+/* ========================= ITEM PCS ========================= */
+
+const pcsSelect = document.getElementById('pcsSelect');
+for(const k in ITEM_PCS){
+  const opt = document.createElement('option');
+  opt.value=k; opt.textContent = ITEM_PCS[k].nama;
+  pcsSelect.appendChild(opt);
+}
+pcsSelect.addEventListener('change', renderPcsPreview);
+document.getElementById('pcsQty').addEventListener('input', renderPcsPreview);
+
+function renderPcsPreview(){
+  const key = pcsSelect.value;
+  const qty = parseInt(document.getElementById('pcsQty').value)||0;
+  const box = document.getElementById('pcsPreview');
+  if(!key || qty<=0){ box.innerHTML=''; return; }
+  const remaining = pcsStok[key] - qty;
+  const harga = HARGA_PCS[key];
+  let hargaInfo = '';
+  if(harga){
+    const total = harga.tiga ? Math.floor(qty/3)*harga.tiga + (qty%3)*harga.satu : qty*harga.satu;
+    hargaInfo = `<div class="receipt-line"><span>Estimasi harga (3=${fmt(harga.tiga)}, 1=${fmt(harga.satu)})</span><span>Rp${fmt(total)}</span></div>`;
+  }
+  box.innerHTML = `
+    <div class="receipt-line${remaining<0?' neg':''}"><span>${ITEM_PCS[key].nama}</span><span>-${qty} pcs</span></div>
+    ${hargaInfo}
+    <div class="receipt-line"><span>Sisa setelah ini</span><span>${fmt(Math.max(0,remaining))} pcs</span></div>
+    ${remaining<0?'<div class="banner danger">⚠️ Stok tidak cukup</div>':''}
+  `;
+}
+
+function submitPcs(){
+  const key = pcsSelect.value;
+  const qty = parseInt(document.getElementById('pcsQty').value)||0;
+  if(qty<=0){ toast('Jumlah harus lebih dari 0'); return; }
+  if(pcsStok[key]-qty < 0){ toast('Stok tidak cukup!'); return; }
+  pcsStok[key]-=qty;
+  const harga = HARGA_PCS[key];
+  const total = harga ? (harga.tiga ? Math.floor(qty/3)*harga.tiga + (qty%3)*harga.satu : qty*harga.satu) : 0;
+  txPcs.push({ id:Date.now(), item:ITEM_PCS[key].nama, itemKey:key, qty, total, time:new Date().toISOString() });
+  persistAll();
+  toast(`✅ ${qty} pcs ${ITEM_PCS[key].nama} dicatat`);
+  document.getElementById('pcsQty').value=1;
+  renderPcsPreview(); renderPcsLog(); renderStok();
+}
+
+function renderPcsLog(){
+  const box = document.getElementById('pcsLog');
+  if(txPcs.length===0){ box.innerHTML=`<div class="empty">Belum ada transaksi.</div>`; return; }
+  let html='';
+  [...txPcs].reverse().forEach(t=>{
+    const time = new Date(t.time).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const src = t.source==='kasir' ? `<span class="src-badge">Kasir${t.queue?' #'+String(t.queue).padStart(2,'0'):''}</span>` : '';
+    html += `<div class="history-item">
+      <div><div class="d">${t.item} × ${t.qty} ${src}</div><div class="s">${time}${t.total?' · Rp'+fmt(t.total):''}</div></div>
+      <button class="btn-del" title="Hapus & kembalikan stok" onclick="deletePcs(${t.id})">${TRASH_SVG}</button>
+    </div>`;
+  });
+  box.innerHTML = html;
+}
+
+function deletePcs(id){
+  const t = txPcs.find(x=>x.id===id);
+  if(!t) return;
+  const msg = `Hapus "${t.item} × ${t.qty}"?\n\nStok dikembalikan.` +
+    (t.source==='kasir' ? `\n\nCatatan: ini berasal dari Kasir. Yang dihapus hanya catatan di SO.` : '');
+  if(!confirm(msg)) return;
+  pcsStok[t.itemKey] = (pcsStok[t.itemKey]||0) + t.qty;
+  txPcs = txPcs.filter(x=>x.id!==id);
+  if(t.ref){ const sy = loadKasirSync(); if(sy.applied[t.ref]){ sy.applied[t.ref].deleted = true; saveJSON(LS_KASIR_SYNC, sy); } }
+  persistAll();
+  toast('🗑️ Transaksi dihapus, stok dikembalikan');
+  renderPcsLog(); renderPcsPreview(); renderStok(); renderKasirInfo();
+}
+renderPcsLog();
+
+/* ========================= DANDANG ========================= */
+
+document.getElementById('dandangQty').addEventListener('input', renderDandangPreview);
+function renderDandangPreview(){
+  const qty = parseInt(document.getElementById('dandangQty').value)||0;
+  const box = document.getElementById('dandangPreview');
+  if(qty<=0){ box.innerHTML=''; return; }
+  const setUsage = DANDANG.set_dandang*qty;
+  const secangUsage = DANDANG.kayu_secang*qty;
+  const remSet = stok.set_dandang - setUsage;
+  const remSecang = stok.kayu_secang - secangUsage;
+  box.innerHTML = `
+    <div class="receipt-line${remSet<0?' neg':''}"><span>Set Racikan Dandang</span><span>-${setUsage} toples</span></div>
+    <div class="receipt-line${remSecang<0?' neg':''}"><span>Kayu Secang</span><span>-${secangUsage} gram</span></div>
+    ${(remSet<0||remSecang<0)?'<div class="banner danger">⚠️ Stok tidak cukup</div>':''}
+  `;
+}
+renderDandangPreview();
+
+function submitDandang(){
+  const qty = parseInt(document.getElementById('dandangQty').value)||0;
+  if(qty<=0){ toast('Jumlah galon harus lebih dari 0'); return; }
+  const setUsage = DANDANG.set_dandang*qty;
+  const secangUsage = DANDANG.kayu_secang*qty;
+  if(stok.set_dandang-setUsage<0 || stok.kayu_secang-secangUsage<0){ toast('Stok tidak cukup!'); return; }
+  stok.set_dandang -= setUsage;
+  stok.kayu_secang -= secangUsage;
+  txDandang.push({ id:Date.now(), galon:qty, setUsage, secangUsage, time:new Date().toISOString() });
+  persistAll();
+  toast(`✅ ${qty} galon dandang dicatat`);
+  document.getElementById('dandangQty').value=1;
+  renderDandangPreview(); renderDandangLog(); renderStok();
+}
+
+function renderDandangLog(){
+  const box = document.getElementById('dandangLog');
+  if(txDandang.length===0){ box.innerHTML=`<div class="empty">Belum ada proses dandang.</div>`; return; }
+  let html='';
+  [...txDandang].reverse().forEach(t=>{
+    const time = new Date(t.time).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    html += `<div class="history-item">
+      <div><div class="d">${t.galon} galon</div><div class="s">-${t.setUsage} toples set, -${t.secangUsage}g secang · ${time}</div></div>
+    </div>`;
+  });
+  box.innerHTML = html;
+}
+renderDandangLog();
+
+/* ========================= RUSAK ========================= */
+
+const rusakSelect = document.getElementById('rusakSelect');
+for(const k in BAHAN){
+  const opt = document.createElement('option');
+  opt.value=k; opt.textContent = BAHAN[k].nama;
+  rusakSelect.appendChild(opt);
+}
+rusakSelect.addEventListener('change', ()=>{
+  document.getElementById('rusakUnit').textContent = unitLabel(BAHAN[rusakSelect.value].unit);
+});
+document.getElementById('rusakUnit').textContent = unitLabel(BAHAN[rusakSelect.value].unit);
+
+function submitRusak(){
+  const key = rusakSelect.value;
+  const qty = parseFloat(document.getElementById('rusakQty').value);
+  const note = document.getElementById('rusakNote').value.trim();
+  if(!qty || qty<=0){ toast('Masukkan jumlah rusak yang valid'); return; }
+  if(stok[key]-qty < -0.0001){ toast('Jumlah melebihi sisa stok!'); return; }
+  stok[key] -= qty;
+  txRusak.push({ id:Date.now(), bahan:BAHAN[key].nama, bahanKey:key, qty, unit:BAHAN[key].unit, note, time:new Date().toISOString() });
+  persistAll();
+  toast(`🗑️ ${fmt(qty)} ${unitLabel(BAHAN[key].unit)} ${BAHAN[key].nama} dicatat rusak`);
+  document.getElementById('rusakQty').value='';
+  document.getElementById('rusakNote').value='';
+  renderRusakLog(); renderStok();
+}
+
+function renderRusakLog(){
+  const box = document.getElementById('rusakLog');
+  if(txRusak.length===0){ box.innerHTML=`<div class="empty">Belum ada catatan bahan rusak.</div>`; return; }
+  let html='';
+  [...txRusak].reverse().forEach(t=>{
+    const time = new Date(t.time).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    html += `<div class="history-item">
+      <div><div class="d">${t.bahan} — ${fmt(t.qty)} ${unitLabel(t.unit)}</div><div class="s">${t.note?t.note+' · ':''}${time}</div></div>
+    </div>`;
+  });
+  box.innerHTML = html;
+}
+renderRusakLog();
+
+/* ========================= KIRIMAN (BARANG MASUK) ========================= */
+
+let kirimanRowCount = 0;
+const kirimanKategoriEl = document.getElementById('kirimanKategori');
+
+function kirimanOptionsHTML(kategori){
+  if(kategori === 'pcs'){
+    return Object.keys(ITEM_PCS).map(k=>`<option value="${k}">${ITEM_PCS[k].nama}</option>`).join('');
+  }
+  return Object.keys(BAHAN).map(k=>`<option value="${k}">${BAHAN[k].nama}</option>`).join('');
+}
+
+function addKirimanRow(){
+  kirimanRowCount++;
+  const id = 'krow_'+kirimanRowCount;
+  const kategori = kirimanKategoriEl.value;
+  const wrap = document.getElementById('kirimanRows');
+  const row = document.createElement('div');
+  row.className = 'row2';
+  row.id = id;
+  row.style.marginBottom = '10px';
+  row.innerHTML = `
+    <label class="field" style="margin-bottom:0;">
+      <span class="lbl">Bahan</span>
+      <select class="kiriman-item">${kirimanOptionsHTML(kategori)}</select>
+    </label>
+    <label class="field" style="margin-bottom:0;">
+      <span class="lbl">Jumlah Masuk</span>
+      <div style="display:flex; gap:6px;">
+        <input type="number" class="kiriman-qty" min="0" step="0.1" inputmode="decimal" placeholder="0" style="flex:1;">
+        <button class="btn-ghost btn-sm" style="flex-shrink:0;" onclick="removeKirimanRow('${id}')">✕</button>
+      </div>
+    </label>
+  `;
+  wrap.appendChild(row);
+  row.querySelector('.kiriman-item').addEventListener('change', renderKirimanPreview);
+  row.querySelector('.kiriman-qty').addEventListener('input', renderKirimanPreview);
+  renderKirimanPreview();
+}
+
+function removeKirimanRow(id){
+  const el = document.getElementById(id);
+  if(el) el.remove();
+  // pastikan minimal 1 baris tersisa
+  if(document.getElementById('kirimanRows').children.length === 0){
+    addKirimanRow();
+  } else {
+    renderKirimanPreview();
+  }
+}
+
+kirimanKategoriEl.addEventListener('change', ()=>{
+  document.getElementById('kirimanRows').innerHTML = '';
+  kirimanRowCount = 0;
+  addKirimanRow();
+});
+
+function unitForKiriman(kategori, key){
+  if(kategori === 'pcs') return 'pcs';
+  return unitLabel(BAHAN[key].unit);
+}
+
+function collectKirimanRows(){
+  const kategori = kirimanKategoriEl.value;
+  const rows = [...document.getElementById('kirimanRows').children];
+  const items = [];
+  rows.forEach(row=>{
+    const key = row.querySelector('.kiriman-item').value;
+    const qty = parseFloat(row.querySelector('.kiriman-qty').value);
+    if(key && qty > 0){
+      items.push({ key, qty, kategori });
+    }
+  });
+  return items;
+}
+
+function renderKirimanPreview(){
+  const items = collectKirimanRows();
+  const box = document.getElementById('kirimanPreview');
+  if(items.length === 0){ box.innerHTML=''; return; }
+  let html = `<div class="group-label">Stok Setelah Kiriman Masuk</div>`;
+  items.forEach(it=>{
+    const nama = it.kategori === 'pcs' ? ITEM_PCS[it.key].nama : BAHAN[it.key].nama;
+    const unit = unitForKiriman(it.kategori, it.key);
+    const currentStok = it.kategori === 'pcs' ? pcsStok[it.key] : stok[it.key];
+    const after = currentStok + it.qty;
+    html += `<div class="receipt-line"><span>${nama}</span><span>${fmt(currentStok)} → ${fmt(after)} ${unit}</span></div>`;
+  });
+  box.innerHTML = html;
+}
+
+function submitKiriman(){
+  const items = collectKirimanRows();
+  if(items.length === 0){ toast('Isi minimal satu bahan dengan jumlah lebih dari 0'); return; }
+
+  const note = document.getElementById('kirimanNote').value.trim();
+  const detail = [];
+
+  items.forEach(it=>{
+    if(it.kategori === 'pcs'){
+      pcsStok[it.key] += it.qty;
+      detail.push({ nama: ITEM_PCS[it.key].nama, key: it.key, kategori:'pcs', qty: it.qty, unit:'pcs' });
+    } else {
+      stok[it.key] += it.qty;
+      detail.push({ nama: BAHAN[it.key].nama, key: it.key, kategori:'bahan', qty: it.qty, unit: unitLabel(BAHAN[it.key].unit) });
+    }
+  });
+
+  txKiriman.push({
+    id: Date.now(),
+    detail,
+    note,
+    time: new Date().toISOString(),
+  });
+
+  persistAll();
+  toast(`📥 Kiriman ${items.length} bahan berhasil ditambahkan ke stok`);
+
+  document.getElementById('kirimanRows').innerHTML = '';
+  kirimanRowCount = 0;
+  addKirimanRow();
+  document.getElementById('kirimanNote').value = '';
+
+  renderKirimanLog();
+  renderStok();
+}
+
+function renderKirimanLog(){
+  const box = document.getElementById('kirimanLog');
+  if(txKiriman.length === 0){ box.innerHTML = `<div class="empty">Belum ada kiriman tercatat.</div>`; return; }
+  let html = '';
+  [...txKiriman].reverse().forEach(t=>{
+    const time = new Date(t.time).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    const itemsStr = t.detail.map(d=>`${d.nama} +${fmt(d.qty)}${d.unit}`).join(', ');
+    html += `<div class="history-item">
+      <div>
+        <div class="d">${t.detail.length} item diterima</div>
+        <div class="s">${itemsStr}</div>
+        <div class="s">${t.note ? t.note+' · ' : ''}${time}</div>
+      </div>
+    </div>`;
+  });
+  box.innerHTML = html;
+}
+renderKirimanLog();
+
+/* ========================= RESET STOK ========================= */
+
+function openResetModal(){
+  if(confirm('Atur ulang SEMUA stok ke jumlah default awal dan hapus transaksi hari ini? Tindakan ini tidak bisa dibatalkan.')){
+    stok = defaultStok();
+    pcsStok = defaultPcsStok();
+    txJual = []; txPcs = []; txDandang = []; txRusak = []; txKiriman = []; txKoreksi = [];
+    markKasirSettled();
+    persistAll();
+    toast('🔄 Stok berhasil direset ke kondisi awal');
+    renderStok(); renderJualLog(); renderPcsLog(); renderDandangLog(); renderRusakLog(); renderKirimanLog(); renderKoreksiLog();
+  }
+}
+
+/* ========================= PDF EXPORT ========================= */
+
+function generatePDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const dateNow = new Date();
+  const dateStr = dateNow.toLocaleDateString('id-ID',{ weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const timeStr = dateNow.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+
+  let y = 18;
+  const left = 14, right = 196;
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(16);
+  doc.setTextColor(61,43,31);
+  doc.text('LAPORAN STOK OPNAME HARIAN', left, y);
+  y += 6;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.setTextColor(90,90,90);
+  doc.text(`${dateStr} · dicetak ${timeStr}`, left, y);
+  y += 4;
+  doc.setDrawColor(220,200,160); doc.line(left, y, right, y);
+  y += 8;
+
+  // Section: Sisa Stok
+  doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(61,43,31);
+  doc.text('1. SISA STOK BAHAN BAKU', left, y); y+=6;
+
+  doc.setFontSize(9);
+  const colX = [left, left+70, left+100, left+130, right];
+  doc.setFont('helvetica','bold');
+  doc.text('Bahan', colX[0], y);
+  doc.text('Stok Awal', colX[1], y);
+  doc.text('Terpakai', colX[2], y);
+  doc.text('Sisa', colX[3], y);
+  y += 1.5; doc.setDrawColor(200,200,200); doc.line(left,y,right,y); y+=4;
+  doc.setFont('helvetica','normal');
+
+  for(const k in BAHAN){
+    if(y > 275){ doc.addPage(); y = 18; }
+    const b = BAHAN[k];
+    const sisa = Math.max(0, stok[k]);
+    const terpakai = b.stokAwal - stok[k];
+    doc.setTextColor(30,30,30);
+    doc.text(b.nama, colX[0], y);
+    doc.text(`${fmt(b.stokAwal)} ${unitLabel(b.unit)}`, colX[1], y);
+    doc.text(`${fmt(Math.max(0,terpakai))} ${unitLabel(b.unit)}`, colX[2], y);
+    doc.setTextColor(sisa/b.stokAwal<=0.15 ? 163:(sisa/b.stokAwal<=0.35?181:30), sisa/b.stokAwal<=0.15?53:(sisa/b.stokAwal<=0.35?80:30), 30);
+    doc.text(`${fmt(sisa)} ${unitLabel(b.unit)}`, colX[3], y);
+    y += 5.2;
+  }
+
+  y += 2;
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(61,43,31);
+  doc.text('Item Satuan (Pcs)', left, y); y += 5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  for(const k in ITEM_PCS){
+    if(y > 275){ doc.addPage(); y = 18; }
+    const it = ITEM_PCS[k];
+    const sisa = Math.max(0, pcsStok[k]);
+    const terpakai = it.stokAwal - pcsStok[k];
+    doc.setTextColor(30,30,30);
+    doc.text(it.nama, colX[0], y);
+    doc.text(`${fmt(it.stokAwal)} pcs`, colX[1], y);
+    doc.text(`${fmt(Math.max(0,terpakai))} pcs`, colX[2], y);
+    doc.text(`${fmt(sisa)} pcs`, colX[3], y);
+    y += 5.2;
+  }
+
+  y += 6;
+  if(y > 250){ doc.addPage(); y = 18; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(76,122,76);
+  doc.text('2. KIRIMAN BAHAN BAKU MASUK', left, y); y += 6;
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  if(txKiriman.length === 0){
+    doc.setTextColor(120,120,120); doc.text('Tidak ada kiriman masuk hari ini.', left, y); y+=6;
+  } else {
+    doc.setFont('helvetica','bold'); doc.setTextColor(61,43,31);
+    doc.text('Bahan', colX[0], y); doc.text('Jumlah Masuk', colX[2], y); doc.text('Waktu', colX[3], y);
+    y += 1.5; doc.setDrawColor(200,200,200); doc.line(left,y,right,y); y += 4;
+    doc.setFont('helvetica','normal');
+    txKiriman.forEach(t=>{
+      const time = new Date(t.time).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      t.detail.forEach(d=>{
+        if(y > 275){ doc.addPage(); y = 18; }
+        doc.setTextColor(30,30,30);
+        doc.text(d.nama, colX[0], y);
+        doc.text(`+${fmt(d.qty)} ${d.unit}`, colX[2], y);
+        doc.text(time, colX[3], y);
+        y += 5.2;
+      });
+      if(t.note){
+        if(y > 275){ doc.addPage(); y = 18; }
+        doc.setFontSize(8); doc.setTextColor(120,120,120);
+        doc.text(`Catatan: ${t.note}`, colX[0], y);
+        doc.setFontSize(9);
+        y += 5;
+      }
+    });
+    y += 1;
+  }
+
+  y += 4;
+  if(y > 250){ doc.addPage(); y = 18; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(140,100,20);
+  doc.text('3. KOREKSI STOK MANUAL', left, y); y += 6;
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  if(txKoreksi.length === 0){
+    doc.setTextColor(120,120,120); doc.text('Tidak ada koreksi stok hari ini.', left, y); y+=6;
+  } else {
+    doc.setFont('helvetica','bold'); doc.setTextColor(61,43,31);
+    doc.text('Bahan', colX[0], y); doc.text('Dari', colX[1], y); doc.text('Jadi', colX[2], y); doc.text('Selisih', colX[3], y);
+    y += 1.5; doc.setDrawColor(200,200,200); doc.line(left,y,right,y); y += 4;
+    doc.setFont('helvetica','normal');
+    txKoreksi.forEach(t=>{
+      if(y > 275){ doc.addPage(); y = 18; }
+      doc.setTextColor(30,30,30);
+      doc.text(t.nama, colX[0], y);
+      doc.text(`${fmt(t.dari)} ${t.unit}`, colX[1], y);
+      doc.text(`${fmt(t.ke)} ${t.unit}`, colX[2], y);
+      doc.setTextColor(t.selisih>=0?76:163, t.selisih>=0?122:53, t.selisih>=0?76:44);
+      doc.text(`${t.selisih>=0?'+':''}${fmt(t.selisih)}`, colX[3], y);
+      y += 5.2;
+    });
+  }
+
+  y += 4;
+  if(y > 250){ doc.addPage(); y = 18; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(61,43,31);
+  doc.text('4. RINGKASAN PENJUALAN MINUMAN', left, y); y += 6;
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  if(txJual.length === 0){
+    doc.setTextColor(120,120,120); doc.text('Tidak ada transaksi hari ini.', left, y); y+=6;
+  } else {
+    const summary = {};
+    txJual.forEach(t=>{ summary[t.menu] = (summary[t.menu]||0) + t.qty; });
+    doc.setFont('helvetica','bold');
+    doc.text('Menu', colX[0], y); doc.text('Total Porsi Terjual', colX[2], y);
+    y += 1.5; doc.line(left,y,right,y); y += 4;
+    doc.setFont('helvetica','normal');
+    let totalPorsi = 0;
+    for(const menu in summary){
+      if(y > 275){ doc.addPage(); y = 18; }
+      doc.setTextColor(30,30,30);
+      doc.text(menu, colX[0], y);
+      doc.text(`${summary[menu]} porsi`, colX[2], y);
+      totalPorsi += summary[menu];
+      y += 5.2;
+    }
+    y += 1;
+    doc.setFont('helvetica','bold');
+    doc.text(`Total keseluruhan: ${totalPorsi} porsi (${txJual.length} transaksi)`, left, y);
+    y += 7;
+  }
+
+  if(y > 260){ doc.addPage(); y = 18; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(61,43,31);
+  doc.text('5. PENJUALAN ITEM PCS', left, y); y += 6;
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  if(txPcs.length === 0){
+    doc.setTextColor(120,120,120); doc.text('Tidak ada transaksi hari ini.', left, y); y+=6;
+  } else {
+    const summaryPcs = {}; let totalUang = 0;
+    txPcs.forEach(t=>{ summaryPcs[t.item] = (summaryPcs[t.item]||0) + t.qty; totalUang += t.total||0; });
+    for(const item in summaryPcs){
+      if(y > 275){ doc.addPage(); y = 18; }
+      doc.setTextColor(30,30,30);
+      doc.text(item, colX[0], y);
+      doc.text(`${summaryPcs[item]} pcs`, colX[2], y);
+      y += 5.2;
+    }
+    y += 1;
+    doc.setFont('helvetica','bold');
+    doc.text(`Estimasi total pendapatan item pcs: Rp${fmt(totalUang)}`, left, y);
+    y += 7;
+  }
+
+  if(y > 260){ doc.addPage(); y = 18; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(61,43,31);
+  doc.text('6. PROSES DANDANG', left, y); y += 6;
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  if(txDandang.length === 0){
+    doc.setTextColor(120,120,120); doc.text('Tidak ada proses dandang hari ini.', left, y); y+=6;
+  } else {
+    let totalGalon = 0;
+    txDandang.forEach(t=>totalGalon+=t.galon);
+    doc.setTextColor(30,30,30);
+    doc.text(`Total galon diproses: ${totalGalon} galon`, left, y); y+=5.2;
+    doc.text(`Total set racikan terpakai: ${totalGalon} toples`, left, y); y+=5.2;
+    doc.text(`Total kayu secang terpakai: ${totalGalon*4} gram`, left, y); y+=7;
+  }
+
+  if(y > 250){ doc.addPage(); y = 18; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(163,53,44);
+  doc.text('7. BAHAN RUSAK / BUSUK', left, y); y += 6;
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  if(txRusak.length === 0){
+    doc.setTextColor(120,120,120); doc.text('Tidak ada catatan bahan rusak hari ini.', left, y); y+=6;
+  } else {
+    doc.setFont('helvetica','bold'); doc.setTextColor(61,43,31);
+    doc.text('Bahan', colX[0], y); doc.text('Jumlah', colX[2], y); doc.text('Catatan', colX[3]-5, y);
+    y += 1.5; doc.line(left,y,right,y); y += 4;
+    doc.setFont('helvetica','normal');
+    txRusak.forEach(t=>{
+      if(y > 275){ doc.addPage(); y = 18; }
+      doc.setTextColor(30,30,30);
+      doc.text(t.bahan, colX[0], y);
+      doc.text(`${fmt(t.qty)} ${unitLabel(t.unit)}`, colX[2], y);
+      doc.setFontSize(8);
+      doc.text(t.note || '-', colX[3]-5, y, {maxWidth:35});
+      doc.setFontSize(9);
+      y += 5.2;
+    });
+  }
+
+  y += 6;
+  if(y > 280) { doc.addPage(); y = 18; }
+  doc.setDrawColor(220,200,160); doc.line(left,y,right,y); y+=6;
+  doc.setFontSize(8); doc.setTextColor(150,150,150);
+  doc.text('Dibuat otomatis oleh SO Rempah — Stok Opname Harian', left, y);
+
+  const filename = `SO-Rempah_${todayStr()}.pdf`;
+  doc.save(filename);
+
+  history.push({
+    id: Date.now(),
+    date: todayStr(),
+    time: dateNow.toISOString(),
+    filename,
+    totalTransaksi: txJual.length,
+    totalPorsi: txJual.reduce((a,t)=>a+t.qty,0),
+    totalRusak: txRusak.length,
+    totalKiriman: txKiriman.length,
+  });
+  persistAll();
+  toast('📄 Laporan PDF berhasil dibuat & diunduh');
+  renderHistory();
+}
+
+function renderHistory(){
+  const box = document.getElementById('historyList');
+  if(history.length===0){ box.innerHTML = `<div class="empty">Belum ada laporan tersimpan.</div>`; return; }
+  let html='';
+  [...history].reverse().forEach(h=>{
+    const d = new Date(h.time);
+    html += `<div class="history-item">
+      <div>
+        <div class="d">${h.filename}</div>
+        <div class="s">${d.toLocaleDateString('id-ID')} ${d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})} · ${h.totalPorsi} porsi terjual · ${h.totalKiriman||0} kiriman masuk · ${h.totalRusak} item rusak</div>
+      </div>
+    </div>`;
+  });
+  box.innerHTML = html;
+}
+
+/* ========================= CLOCK ========================= */
+
+function updateClock(){
+  const d = new Date();
+  document.getElementById('todayLabel').textContent = "Hari ini " + d.toLocaleDateString('id-ID',{day:'numeric', month:'long'});
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+/* ========================= CALENDAR STRIP ========================= */
+
+function renderCalStrip(){
+  const box = document.getElementById('calStrip');
+  if(!box) return;
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  let html = '';
+  // tampilkan 3 hari sebelum s/d 3 hari sesudah hari ini
+  for(let offset = -3; offset <= 3; offset++){
+    const d = new Date(today);
+    d.setDate(d.getDate() + offset);
+    const isToday = offset === 0;
+    html += `
+      <div class="cal-day ${isToday?'today':''}" data-offset="${offset}">
+        <div class="dn">${dayNames[d.getDay()]}</div>
+        <div class="dd">${d.getDate()}</div>
+        ${isToday ? '' : '<div class="dot" style="visibility:hidden"></div>'}
+      </div>`;
+  }
+  box.innerHTML = html;
+  box.querySelectorAll('.cal-day').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const off = parseInt(el.dataset.offset,10);
+      if(off === 0){
+        document.querySelector('[data-tab=stok]').click();
+      } else {
+        toast('Riwayat harian lain: lihat tab Riwayat 📚');
+        document.querySelector('[data-tab=riwayat]').click();
+      }
+    });
+  });
+}
+
+/* ========================= HERO + PLAN GRID (ringkasan status) ========================= */
+
+function renderHeroAndPlan(){
+  // Hitung status stok kritis/low untuk bahan + item pcs
+  let critCount = 0, lowCount = 0, okCount = 0;
+  for(const k in BAHAN){
+    const b = BAHAN[k]; const cur = stok[k];
+    const pct = b.stokAwal > 0 ? (cur/b.stokAwal)*100 : 0;
+    if(pct <= 15) critCount++; else if(pct <= 35) lowCount++; else okCount++;
+  }
+  for(const k in ITEM_PCS){
+    const it = ITEM_PCS[k]; const cur = pcsStok[k];
+    if(it.stokAwal === 0){ if(cur<=0) critCount++; else okCount++; continue; }
+    const pct = (cur/it.stokAwal)*100;
+    if(pct <= 15) critCount++; else if(pct <= 35) lowCount++; else okCount++;
+  }
+
+  const heroTag = document.getElementById('heroTag');
+  const heroTitle = document.getElementById('heroTitle');
+  const heroSub = document.getElementById('heroSub');
+  const totalTx = txJual.length + txPcs.length + txDandang.length + txRusak.length;
+
+  if(critCount > 0){
+    heroTag.textContent = "⚠️ Perlu Perhatian";
+    heroTitle.textContent = critCount + " Bahan Kritis";
+    heroSub.textContent = "Segera lapor supervisor untuk restock sebelum kehabisan.";
+  } else if(lowCount > 0){
+    heroTag.textContent = "Hari ini";
+    heroTitle.textContent = lowCount + " Bahan Menipis";
+    heroSub.textContent = "Pantau terus, siapkan permintaan kiriman berikutnya.";
+  } else {
+    heroTag.textContent = "Hari ini";
+    heroTitle.textContent = "Stok Aman ✅";
+    heroSub.textContent = totalTx > 0 ? totalTx + " transaksi tercatat hari ini." : "Belum ada transaksi tercatat hari ini.";
+  }
+
+  // Plan grid: 2 kartu status (kritis vs aman)
+  const grid = document.getElementById('planGrid');
+  if(!grid) return;
+  grid.innerHTML = `
+    <div class="plan-card orange" onclick="document.querySelector('[data-tab=stok]').click()">
+      <span class="tag">Kritis</span>
+      <div class="ttl">${critCount} Bahan</div>
+      <div class="mt">Stok di bawah 15% — perlu restock segera.</div>
+    </div>
+    <div class="plan-card blue" onclick="document.querySelector('[data-tab=kiriman]').click()">
+      <span class="tag">Menipis</span>
+      <div class="ttl">${lowCount} Bahan</div>
+      <div class="mt">Stok 15–35% — siapkan kiriman berikutnya.</div>
+    </div>`;
+}
+
+/* ========================= INITIAL RENDER ========================= */
+renderCalStrip();
+renderStok();
+renderKoreksiLog();
+
+/* ========================= SINKRON KASIR -> SO ========================= */
+// Penjualan Kasir yang sudah LUNAS otomatis masuk ke tab Jual / Pcs dan mengurangi stok.
+// Kalau transaksi dihapus di Kasir, stok dikembalikan otomatis.
+// Hanya transaksi yang dilunasi SETELAH sinkron pertama kali aktif yang diproses
+// (supaya penjualan lama / yang sudah kamu input manual tidak terhitung dua kali).
+const LS_KASIR_SYNC = "so_kasir_sync_v1";
+const KASIR_HISTORY_KEY = "dawa_history";
+const KASIR_RESET_KEY = "dawa_reset_at";
+
+// nama menu di Kasir -> kunci menu di SO
+const KASIR_MAP = {
+  "Rempah Original":            { t:"drink", k:"rempah_original" },
+  "Rempah Kencur + Madu":       { t:"drink", k:"rempah_kencur_madu" },
+  "Rempah Temulawak + Madu":    { t:"drink", k:"rempah_temulawak_original" },
+  "Rempah Jahe Lemon + Madu":   { t:"drink", k:"rempah_jahe_lemon" },
+  "Ranjang Kopi Hitam":         { t:"drink", k:"kopi_ranjang_hitam" },
+  "Bir Pletok Original + Madu": { t:"drink", k:"bir_pletok_original" },
+  "Wedang Uwuh":                { t:"drink", k:"wedang_uwuh" },
+  "STMJ":                       { t:"drink", k:"stmj" },
+  "Rempah Susu Aren + Madu":    { t:"drink", k:"rempah_susu_aren" },
+  "Temulawak Susu":             { t:"drink", k:"rempah_temulawak_susu" },
+  "Lemon Susu + Madu":          { t:"drink", k:"rempah_lemon_susu" },
+  "Ranjang Kopi Susu":          { t:"drink", k:"kopi_ranjang_susu" },
+  "Bir Pletok Susu":            { t:"drink", k:"bir_pletok_susu" },
+  "Bangke Jahe":                { t:"pcs",   k:"kue_bangke_jahe" },
+  "Bolu":                       { t:"pcs",   k:"kue_bolu" },
+};
+
+function loadKasirSync(){
+  const v = loadJSON(LS_KASIR_SYNC, null);
+  if(v && v.applied) return v;
+  return { since:new Date().toISOString(), resetSeen:"", applied:{} };
+}
+function markKasirSettled(){
+  const sy = loadKasirSync();
+  for(const r in sy.applied) sy.applied[r].settled = true;
+  saveJSON(LS_KASIR_SYNC, sy);
+}
+
+let kasirUnmapped = [];
+function syncFromKasir(){
+  let hist;
+  try{ hist = JSON.parse(localStorage.getItem(KASIR_HISTORY_KEY) || '[]'); }catch(e){ return; }
+  if(!Array.isArray(hist)) return;
+  const sy = loadKasirSync();
+  const firstRun = !localStorage.getItem(LS_KASIR_SYNC);
+  let changed = firstRun, nApplied = 0, nReversed = 0;
+
+  // Reset data di Kasir = tutup buku: jangan kembalikan stok, cukup "kunci" catatan lama.
+  const resetAt = localStorage.getItem(KASIR_RESET_KEY) || '';
+  if(resetAt && resetAt > (sy.resetSeen||'')){
+    for(const r in sy.applied) sy.applied[r].settled = true;
+    sy.resetSeen = resetAt; changed = true;
+  }
+
+  // 1) transaksi lunas di Kasir yang harus tercermin di SO
+  const desired = {};
+  const since = new Date(sy.since).getTime();
+  hist.forEach(trx=>{
+    if(!trx || !trx.paidTime) return;
+    if(new Date(trx.paidTime).getTime() < since) return;
+    (trx.items||[]).forEach(it=>{
+      desired[trx.id+'#'+it.name+'|'+(it.unitLabel||'')] = { trx, it };
+    });
+  });
+
+  // 2) terapkan yang baru
+  for(const ref in desired){
+    if(sy.applied[ref]) continue;
+    const { trx, it } = desired[ref];
+    const m = KASIR_MAP[it.name];
+    changed = true;
+    if(!m){ sy.applied[ref] = { unmapped:true, name:it.name }; continue; }
+    const base = { ref, source:'kasir', queue:trx.queue, time:trx.paidTime };
+    const uid = Date.now() * 1000 + Math.floor(Math.random()*1000);
+    if(m.t==='drink'){
+      const takeaway = trx.orderType==='takeaway';
+      const { usage, pcsUsage } = computeUsage(m.k, it.qty, takeaway, {});
+      applyUsage(usage, pcsUsage, -1, m.k, 0);
+      txJual.push({ id:uid, menu:MENU[m.k].nama, menuKey:m.k, qty:it.qty, takeaway,
+        lemonIris:0, sereh:false, pandan:false, usage, pcsUsage, ...base });
+      sy.applied[ref] = { kind:'jual', usage, pcsUsage, menuKey:m.k };
+    } else {
+      const per = parseInt(it.unitLabel) || 1;           // "3 pcs" -> 3
+      const pcsQty = per * it.qty;
+      pcsStok[m.k] = (pcsStok[m.k]||0) - pcsQty;
+      txPcs.push({ id:uid, item:ITEM_PCS[m.k].nama, itemKey:m.k, qty:pcsQty, total:(it.price||0)*it.qty, ...base });
+      sy.applied[ref] = { kind:'pcs', pcsKey:m.k, pcsQty };
+    }
+    nApplied++;
+  }
+
+  // 3) transaksi yang sudah dihapus/diubah di Kasir -> kembalikan stok
+  for(const ref in sy.applied){
+    const a = sy.applied[ref];
+    if(desired[ref] || a.deleted || a.settled || a.unmapped || a.reversed) continue;
+    if(a.kind==='jual'){
+      applyUsage(a.usage, a.pcsUsage||{}, +1, a.menuKey, 0);
+      txJual = txJual.filter(t=>t.ref!==ref);
+    } else if(a.kind==='pcs'){
+      pcsStok[a.pcsKey] = (pcsStok[a.pcsKey]||0) + a.pcsQty;
+      txPcs = txPcs.filter(t=>t.ref!==ref);
+    }
+    a.reversed = true; nReversed++; changed = true;
+  }
+
+  kasirUnmapped = Object.values(sy.applied).filter(a=>a.unmapped && !a.deleted).map(a=>a.name);
+
+  if(changed){
+    saveJSON(LS_KASIR_SYNC, sy);
+    persistAll();
+    renderJualLog(); renderPcsLog(); renderJualPreview(); renderPcsPreview(); renderStok();
+  }
+  renderKasirInfo();
+  if(nApplied)  toast(`🔗 ${nApplied} item dari Kasir masuk ke SO`);
+  if(nReversed) toast(`↩️ ${nReversed} item dihapus di Kasir, stok dikembalikan`);
+}
+
+function renderKasirInfo(){
+  const box = document.getElementById('kasirSyncInfo');
+  if(!box) return;
+  const sy = loadKasirSync();
+  const d = new Date(sy.since);
+  let html = `<div class="banner info"><span>🔗 Tersambung ke Kasir — penjualan yang sudah <b>lunas</b> otomatis tercatat di sini sejak ${d.toLocaleDateString('id-ID')} ${d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}.</span></div>`;
+  if(kasirUnmapped.length){
+    html += `<div class="banner warn"><span>⚠️ Menu Kasir belum dikenali SO, stok tidak dikurangi: <b>${[...new Set(kasirUnmapped)].join(', ')}</b>. Catat manual di form di atas.</span></div>`;
+  }
+  const minus = [];
+  for(const k in stok){ if(stok[k] < -0.0001 && BAHAN[k]) minus.push(BAHAN[k].nama); }
+  for(const k in pcsStok){ if(pcsStok[k] < 0 && ITEM_PCS[k]) minus.push(ITEM_PCS[k].nama); }
+  if(minus.length){
+    html += `<div class="banner danger"><span>⚠️ Stok minus (cek stok fisik / koreksi): ${minus.join(', ')}</span></div>`;
+  }
+  box.innerHTML = html;
+}
+
+syncFromKasir();
+window.addEventListener('storage', (e)=>{
+  if(e.key===KASIR_HISTORY_KEY || e.key===KASIR_RESET_KEY || e.key===null) syncFromKasir();
+});
+window.addEventListener('message', (e)=>{ if(e.data==='dawa-sync') syncFromKasir(); });
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') syncFromKasir(); });
+setInterval(syncFromKasir, 5000);
+
+/* ========================= PWA INSTALL ========================= */
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  if(!localStorage.getItem('so_install_dismissed')){
+    document.getElementById('installBanner').style.display='flex';
+  }
+});
+function doInstall(){
+  document.getElementById('installBanner').style.display='none';
+  if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt=null; }
+}
+function dismissInstall(){
+  document.getElementById('installBanner').style.display='none';
+  localStorage.setItem('so_install_dismissed','1');
+}
+
+if(false && 'serviceWorker' in navigator){ // SW dikelola app induk (../sw.js)
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').then((reg)=>{
+
+      // Cek update secara berkala (tiap 60 detik saat app dibuka/aktif)
+      setInterval(()=>{ reg.update().catch(()=>{}); }, 60*1000);
+
+      // Cek update setiap kali app kembali terlihat (dibuka dari background)
+      document.addEventListener('visibilitychange', ()=>{
+        if(document.visibilityState === 'visible'){
+          reg.update().catch(()=>{});
+        }
+      });
+
+      // Kalau ada SW baru ditemukan sedang install
+      reg.addEventListener('updatefound', ()=>{
+        const newWorker = reg.installing;
+        if(!newWorker) return;
+        newWorker.addEventListener('statechange', ()=>{
+          if(newWorker.state === 'installed' && navigator.serviceWorker.controller){
+            // Versi baru sudah siap, paksa langsung aktif
+            newWorker.postMessage('SKIP_WAITING');
+          }
+        });
+      });
+
+    }).catch(()=>{});
+
+    // Begitu controller berganti (SW baru resmi mengambil alih), reload otomatis 1x
+    let refreshed = false;
+    navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+      if(refreshed) return;
+      refreshed = true;
+      window.location.reload();
+    });
+  });
+}
+</script>
+</body>
+</html>
