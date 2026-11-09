@@ -8,8 +8,8 @@ const MENU = {
     { id: 'ori-5', name: 'Ranjang Kopi Hitam', price: 18000, icon: 'coffee-cup' },
     { id: 'ori-6', name: 'Bir Pletok Original + Madu', price: 17000, icon: 'drink-glass' },
     { id: 'ori-7', name: 'Wedang Uwuh', price: 13000, icon: 'drink-tea' },
-    { id: 'ori-8', name: 'Rempah Kunyit Madu', price: 17000, icon: 'drink-honey' },
-    { id: 'ori-9', name: 'Rempah Kunyit Asem', price: 17000, icon: 'drink-jar' },
+    { id: 'ori-8', name: 'Rempah Kunyit Madu', price: 18000, icon: 'drink-honey' },
+    { id: 'ori-9', name: 'Rempah Kunyit Asem', price: 18000, icon: 'drink-jar' },
   ],
   susu: [
     { id: 'susu-1', name: 'STMJ', price: 21000, icon: 'drink-milk' },
